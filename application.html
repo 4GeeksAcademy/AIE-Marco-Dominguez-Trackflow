@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrackFlow | Information Request Form</title>
+    <meta
+      name="description"
+      content="Request logistics outsourcing information from TrackFlow for warehousing, last-mile delivery, and reverse logistics."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-950 font-sans text-slate-100 antialiased">
+    <div class="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(14,116,144,0.20),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(14,165,233,0.14),transparent_40%)]"></div>
+
+    <header class="sticky top-0 z-50 border-b border-cyan-400/20 bg-slate-950/90 backdrop-blur-xl">
+      <nav
+        class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
+        aria-label="Main navigation"
+      >
+        <a href="index.html#hero" class="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-cyan-300">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 12h10v7H3z" stroke="currentColor" stroke-width="1.7" />
+            <path d="M13 14h4l3 3v2h-7z" stroke="currentColor" stroke-width="1.7" />
+            <circle cx="7" cy="20" r="1.5" fill="currentColor" />
+            <circle cx="17" cy="20" r="1.5" fill="currentColor" />
+          </svg>
+          TrackFlow
+        </a>
+
+        <ul class="hidden items-center gap-4 text-sm font-medium text-slate-100 md:flex sm:gap-6">
+          <li>
+            <a class="inline-flex items-center gap-2 transition-all duration-200 hover:text-cyan-300" href="index.html#services">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 8h16v10H4z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M4 12h16" stroke="currentColor" stroke-width="1.7" />
+                <path d="M9 8V6h6v2" stroke="currentColor" stroke-width="1.7" />
+              </svg>
+              <span data-i18n="navServices">Services</span>
+            </a>
+          </li>
+          <li>
+            <a class="inline-flex items-center gap-2 transition-all duration-200 hover:text-cyan-300" href="index.html#coverage">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 21s7-4.5 7-10a7 7 0 1 0-14 0c0 5.5 7 10 7 10z" stroke="currentColor" stroke-width="1.7" />
+                <circle cx="12" cy="11" r="2" fill="currentColor" />
+              </svg>
+              <span data-i18n="navCoverage">Coverage</span>
+            </a>
+          </li>
+          <li>
+            <a class="inline-flex items-center gap-2 transition-all duration-200 hover:text-cyan-300" href="index.html#contact">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.7" />
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.7" />
+              </svg>
+              <span data-i18n="navContact">Contact</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="flex items-center gap-2 rounded-full border border-cyan-400/30 bg-slate-900/70 p-1">
+          <button
+            id="lang-en"
+            type="button"
+            class="rounded-full bg-cyan-500 px-3 py-1 text-xs font-semibold text-slate-950 transition-all duration-200"
+            aria-pressed="true"
+          >
+            EN
+          </button>
+          <button
+            id="lang-es"
+            type="button"
+            class="rounded-full px-3 py-1 text-xs font-semibold text-cyan-200 transition-all duration-200 hover:bg-cyan-400/20"
+            aria-pressed="false"
+          >
+            ES
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <article class="mx-auto max-w-5xl rounded-2xl border border-cyan-300/20 bg-slate-900/85 p-6 shadow-2xl shadow-cyan-900/20 sm:p-8">
+          <div class="mb-6 rounded-xl border border-cyan-300/35 bg-slate-950/70 p-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p data-i18n="languageHelper" class="text-sm font-medium text-cyan-100">
+                Choose the language for this application form
+              </p>
+              <div class="flex items-center gap-2">
+                <span data-i18n="languageLabel" class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">Language</span>
+                <div class="flex items-center gap-2 rounded-full border border-cyan-400/40 bg-slate-900 p-1 shadow-lg shadow-cyan-900/30">
+              <button
+                id="lang-en-form"
+                type="button"
+                class="rounded-full bg-cyan-500 px-3 py-1 text-xs font-semibold text-slate-950 transition-all duration-200"
+                aria-pressed="true"
+              >
+                EN
+              </button>
+              <button
+                id="lang-es-form"
+                type="button"
+                class="rounded-full px-3 py-1 text-xs font-semibold text-cyan-200 transition-all duration-200 hover:bg-cyan-400/20"
+                aria-pressed="false"
+              >
+                ES
+              </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h1 data-i18n="formTitle" class="text-3xl font-bold leading-tight text-white sm:text-4xl">Request Information</h1>
+          <p data-i18n="formIntro" class="mt-3 text-slate-200">
+            Complete the form and our sales team will contact you with a tailored logistics proposal for your
+            operations in the United States and Spain.
+          </p>
+
+          <section id="success-container" class="mt-8" aria-live="polite">
+            <form id="trackflow-form" class="space-y-6" novalidate>
+              <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                  <label for="companyName" data-i18n="labelCompanyName" class="block text-sm font-semibold text-slate-100">Company Name *</label>
+                  <input
+                    id="companyName"
+                    name="companyName"
+                    type="text"
+                    minlength="2"
+                    required
+                    aria-describedby="companyName-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <p id="companyName-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="contactPerson" data-i18n="labelContactPerson" class="block text-sm font-semibold text-slate-100">Contact Person *</label>
+                  <input
+                    id="contactPerson"
+                    name="contactPerson"
+                    type="text"
+                    required
+                    aria-describedby="contactPerson-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <p id="contactPerson-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="corporateEmail" data-i18n="labelEmail" class="block text-sm font-semibold text-slate-100">Corporate Email *</label>
+                  <input
+                    id="corporateEmail"
+                    name="corporateEmail"
+                    type="email"
+                    required
+                    aria-describedby="corporateEmail-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <p id="corporateEmail-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="phone" data-i18n="labelPhone" class="block text-sm font-semibold text-slate-100">Phone *</label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    required
+                    aria-describedby="phone-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    placeholder="+1 213 555 0147"
+                  />
+                  <p id="phone-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="website" data-i18n="labelWebsite" class="block text-sm font-semibold text-slate-100">Company Website</label>
+                  <input
+                    id="website"
+                    name="website"
+                    type="url"
+                    aria-describedby="website-error"
+                    placeholder="https://your-company.com"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <p id="website-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="country" data-i18n="labelCountry" class="block text-sm font-semibold text-slate-100">Operating Country *</label>
+                  <select
+                    id="country"
+                    name="country"
+                    required
+                    aria-describedby="country-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  >
+                    <option value="" data-i18n="optionSelect">Select</option>
+                    <option value="United States" data-i18n="optionUS">United States</option>
+                    <option value="Spain" data-i18n="optionSpain">Spain</option>
+                    <option value="Both" data-i18n="optionBoth">Both</option>
+                    <option value="Other" data-i18n="optionOther">Other</option>
+                  </select>
+                  <p id="country-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="productType" data-i18n="labelProductType" class="block text-sm font-semibold text-slate-100">Product Type *</label>
+                  <select
+                    id="productType"
+                    name="productType"
+                    required
+                    aria-describedby="productType-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  >
+                    <option value="" data-i18n="optionSelect">Select</option>
+                    <option value="Fashion" data-i18n="optionFashion">Fashion</option>
+                    <option value="Electronics" data-i18n="optionElectronics">Electronics</option>
+                    <option value="Cosmetics" data-i18n="optionCosmetics">Cosmetics</option>
+                    <option value="Food" data-i18n="optionFood">Food</option>
+                    <option value="Other" data-i18n="optionOther">Other</option>
+                  </select>
+                  <p id="productType-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+
+                <div>
+                  <label for="monthlyVolume" data-i18n="labelMonthlyVolume" class="block text-sm font-semibold text-slate-100">Monthly Volume *</label>
+                  <select
+                    id="monthlyVolume"
+                    name="monthlyVolume"
+                    required
+                    aria-describedby="monthlyVolume-error"
+                    class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  >
+                    <option value="" data-i18n="optionSelect">Select</option>
+                    <option value="0-100">0-100</option>
+                    <option value="101-500">101-500</option>
+                    <option value="501-2000">501-2000</option>
+                    <option value="2000+">2000+</option>
+                    <option value="Not sure" data-i18n="optionNotSure">Not sure</option>
+                  </select>
+                  <p id="monthlyVolume-error" class="mt-1 text-sm text-rose-400" aria-live="polite"></p>
+                </div>
+              </div>
+
+              <section
+                id="low-volume-warning"
+                class="max-h-0 overflow-hidden rounded-md border border-amber-300 bg-amber-50 px-4 py-0 text-amber-700 opacity-0 transition-all duration-300 ease-in-out"
+                aria-live="polite"
+              >
+                <p class="text-sm font-medium" data-i18n="warningLowVolume">
+                  For volumes under 100 monthly shipments, our services might not be the most efficient solution.
+                  Are you sure you want to continue?
+                </p>
+              </section>
+
+              <fieldset class="rounded-xl border border-cyan-300/25 bg-slate-950/40 p-4">
+                <legend data-i18n="labelServices" class="px-1 text-sm font-semibold text-slate-100">Services Interested *</legend>
+                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="service-warehousing"
+                      name="services"
+                      value="Warehousing"
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="serviceWarehousing">Warehousing</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="service-last-mile"
+                      name="services"
+                      value="Last mile"
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="serviceLastMile">Last mile</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="service-reverse"
+                      name="services"
+                      value="Reverse logistics"
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="serviceReverse">Reverse logistics</span>
+                  </label>
+                </div>
+                <p id="services-error" class="mt-2 text-sm text-rose-400" aria-live="polite"></p>
+              </fieldset>
+
+              <fieldset class="rounded-xl border border-cyan-300/25 bg-slate-950/40 p-4">
+                <legend data-i18n="labelCurrent3PL" class="px-1 text-sm font-semibold text-slate-100">Current 3PL *</legend>
+                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="current3pl-yes"
+                      name="current3pl"
+                      type="radio"
+                      value="Yes"
+                      class="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="optionYes">Yes</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="current3pl-no"
+                      name="current3pl"
+                      type="radio"
+                      value="No"
+                      class="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="optionNo">No</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="current3pl-evaluating"
+                      name="current3pl"
+                      type="radio"
+                      value="Evaluating options"
+                      class="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-600"
+                    />
+                    <span data-i18n="optionEvaluating">Evaluating options</span>
+                  </label>
+                </div>
+                <p id="current3pl-error" class="mt-2 text-sm text-rose-400" aria-live="polite"></p>
+              </fieldset>
+
+              <div>
+                <label for="comments" data-i18n="labelComments" class="block text-sm font-semibold text-slate-100">Comments / Needs</label>
+                <textarea
+                  id="comments"
+                  name="comments"
+                  rows="4"
+                  maxlength="700"
+                  aria-describedby="comments-error comments-counter"
+                  class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                ></textarea>
+                <div class="mt-1 flex items-center justify-between gap-3">
+                  <p id="comments-error" class="text-sm text-rose-400" aria-live="polite"></p>
+                  <p id="comments-counter" class="text-sm text-slate-300">500 characters remaining</p>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-cyan-300/25 bg-slate-950/40 p-4">
+                <label class="inline-flex items-start gap-3 text-sm text-slate-200" for="privacyPolicy">
+                  <input
+                    id="privacyPolicy"
+                    name="privacyPolicy"
+                    type="checkbox"
+                    class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+                    aria-describedby="privacyPolicy-error"
+                  />
+                  <span data-i18n="labelPrivacy">I accept the privacy policy *</span>
+                </label>
+                <p id="privacyPolicy-error" class="mt-2 text-sm text-rose-400" aria-live="polite"></p>
+              </div>
+
+              <div id="form-live-region" class="text-sm text-slate-200" aria-live="polite" role="status"></div>
+
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  data-i18n="submitButton"
+                  class="rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                >
+                  Submit Request
+                </button>
+                <button
+                  type="reset"
+                  id="clear-form"
+                  data-i18n="resetButton"
+                  class="rounded-md border border-cyan-300/40 bg-slate-900 px-5 py-3 text-sm font-semibold text-slate-100 transition-all duration-200 ease-in-out hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                >
+                  Clear Form
+                </button>
+              </div>
+            </form>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <footer class="border-t border-cyan-400/20 bg-slate-950">
+      <div
+        class="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
+      >
+        <p data-i18n="copyright">Copyright: © 2025 TrackFlow. All rights reserved.</p>
+        <p>
+          <span data-i18n="salesLabel">Sales:</span>
+          <a class="text-cyan-300 underline" href="mailto:comercial@trackflow.com">comercial@trackflow.com</a>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var langEn = document.getElementById("lang-en");
+        var langEs = document.getElementById("lang-es");
+        var langEnForm = document.getElementById("lang-en-form");
+        var langEsForm = document.getElementById("lang-es-form");
+        var html = document.documentElement;
+
+        var dictionary = {
+          en: {
+            languageLabel: "Language",
+            languageHelper: "Choose the language for this application form",
+            navServices: "Services",
+            navCoverage: "Coverage",
+            navContact: "Contact",
+            formTitle: "Request Information",
+            formIntro:
+              "Complete the form and our sales team will contact you with a tailored logistics proposal for your operations in the United States and Spain.",
+            labelCompanyName: "Company Name *",
+            labelContactPerson: "Contact Person *",
+            labelEmail: "Corporate Email *",
+            labelPhone: "Phone *",
+            labelWebsite: "Company Website",
+            labelCountry: "Operating Country *",
+            labelProductType: "Product Type *",
+            labelMonthlyVolume: "Monthly Volume *",
+            warningLowVolume:
+              "For volumes under 100 monthly shipments, our services might not be the most efficient solution. Are you sure you want to continue?",
+            labelServices: "Services Interested *",
+            serviceWarehousing: "Warehousing",
+            serviceLastMile: "Last mile",
+            serviceReverse: "Reverse logistics",
+            labelCurrent3PL: "Current 3PL *",
+            optionYes: "Yes",
+            optionNo: "No",
+            optionEvaluating: "Evaluating options",
+            labelComments: "Comments / Needs",
+            labelPrivacy: "I accept the privacy policy *",
+            submitButton: "Submit Request",
+            resetButton: "Clear Form",
+            optionSelect: "Select",
+            optionUS: "United States",
+            optionSpain: "Spain",
+            optionBoth: "Both",
+            optionOther: "Other",
+            optionFashion: "Fashion",
+            optionElectronics: "Electronics",
+            optionCosmetics: "Cosmetics",
+            optionFood: "Food",
+            optionNotSure: "Not sure",
+            copyright: "Copyright: © 2025 TrackFlow. All rights reserved.",
+            salesLabel: "Sales:"
+          },
+          es: {
+            languageLabel: "Idioma",
+            languageHelper: "Elige el idioma para este formulario de solicitud",
+            navServices: "Servicios",
+            navCoverage: "Cobertura",
+            navContact: "Contacto",
+            formTitle: "Solicitar Información",
+            formIntro:
+              "Completa el formulario y nuestro equipo comercial te contactará con una propuesta logística adaptada a tu operación en Estados Unidos y España.",
+            labelCompanyName: "Nombre de la Empresa *",
+            labelContactPerson: "Persona de Contacto *",
+            labelEmail: "Email Corporativo *",
+            labelPhone: "Teléfono *",
+            labelWebsite: "Sitio Web de la Empresa",
+            labelCountry: "País de Operación *",
+            labelProductType: "Tipo de Producto *",
+            labelMonthlyVolume: "Volumen Mensual *",
+            warningLowVolume:
+              "Para volúmenes menores a 100 envíos mensuales, nuestros servicios podrían no ser la opción más eficiente. ¿Deseas continuar?",
+            labelServices: "Servicios de Interés *",
+            serviceWarehousing: "Almacenaje",
+            serviceLastMile: "Última milla",
+            serviceReverse: "Logística inversa",
+            labelCurrent3PL: "3PL Actual *",
+            optionYes: "Sí",
+            optionNo: "No",
+            optionEvaluating: "Evaluando opciones",
+            labelComments: "Comentarios / Necesidades",
+            labelPrivacy: "Acepto la política de privacidad *",
+            submitButton: "Enviar Solicitud",
+            resetButton: "Limpiar Formulario",
+            optionSelect: "Seleccionar",
+            optionUS: "Estados Unidos",
+            optionSpain: "España",
+            optionBoth: "Ambos",
+            optionOther: "Otro",
+            optionFashion: "Moda",
+            optionElectronics: "Electrónica",
+            optionCosmetics: "Cosmética",
+            optionFood: "Alimentos",
+            optionNotSure: "No estoy seguro",
+            copyright: "Copyright: © 2025 TrackFlow. Todos los derechos reservados.",
+            salesLabel: "Comercial:"
+          }
+        };
+
+        function setLangButtonState(lang) {
+          var enActive = lang === "en";
+          [
+            { button: langEn, active: enActive },
+            { button: langEs, active: !enActive },
+            { button: langEnForm, active: enActive },
+            { button: langEsForm, active: !enActive }
+          ].forEach(function (entry) {
+            if (!entry.button) {
+              return;
+            }
+            entry.button.setAttribute("aria-pressed", entry.active ? "true" : "false");
+            entry.button.classList.toggle("bg-cyan-500", entry.active);
+            entry.button.classList.toggle("text-slate-950", entry.active);
+            entry.button.classList.toggle("text-cyan-200", !entry.active);
+            entry.button.classList.toggle("hover:bg-cyan-400/20", !entry.active);
+          });
+        }
+
+        function applyLanguage(lang) {
+          var terms = dictionary[lang] || dictionary.en;
+          html.setAttribute("lang", lang);
+          localStorage.setItem("trackflow-lang", lang);
+          document.querySelectorAll("[data-i18n]").forEach(function (node) {
+            var key = node.getAttribute("data-i18n");
+            if (terms[key]) {
+              node.textContent = terms[key];
+            }
+          });
+          setLangButtonState(lang);
+        }
+
+        if (langEn) {
+          langEn.addEventListener("click", function () {
+            applyLanguage("en");
+          });
+        }
+
+        if (langEs) {
+          langEs.addEventListener("click", function () {
+            applyLanguage("es");
+          });
+        }
+
+        if (langEnForm) {
+          langEnForm.addEventListener("click", function () {
+            applyLanguage("en");
+          });
+        }
+
+        if (langEsForm) {
+          langEsForm.addEventListener("click", function () {
+            applyLanguage("es");
+          });
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        var queryLang = params.get("lang");
+        var storedLang = localStorage.getItem("trackflow-lang");
+        var initialLang = queryLang === "es" || queryLang === "en" ? queryLang : storedLang || "en";
+        applyLanguage(initialLang);
+      })();
+    </script>
+    <script src="validation>.js"></script>
+  </body>
+</html>

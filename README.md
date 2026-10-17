@@ -292,6 +292,35 @@ ai-engineering-company-project-monorepo/
 
 ---
 
+## Running the frontend locally
+
+Install the development tools and build the optimized Tailwind stylesheet once:
+
+```bash
+npm install
+npm run build:css
+```
+
+Then serve the static files (`index.html` and `application.html`) with `npx serve`:
+
+```bash
+npx serve .
+```
+
+This will start a local server (usually at `http://localhost:3000`) that serves the homepage. Navigate to `application.html` to access the information request form.
+
+### Lighthouse / PageSpeed audit
+
+Run the mobile Lighthouse audit for the homepage and information request form. Chrome or Chromium must be installed; set `CHROME_PATH` to its executable if Lighthouse cannot detect it automatically:
+
+```bash
+npm run audit:lighthouse
+```
+
+The audit runs each page three times and fails if performance, best practices, or SEO score below 80. HTML and JSON reports are written to `docs/audits/lighthouse-results/`. The latest local results are summarized in [`docs/audits/lighthouse.md`](./docs/audits/lighthouse.md); PageSpeed scores on a deployed host can differ with hosting and network conditions.
+
+---
+
 ## Links
 
 - [4Geeks Academy — AI Engineering](https://4geeksacademy.com/es/programas-de-carrera/ingenieria-ia)

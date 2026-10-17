@@ -8,7 +8,20 @@
       name="description"
       content="Request logistics outsourcing information from TrackFlow for warehousing, last-mile delivery, and reverse logistics."
     />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://trackflow.com/application.html" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="TrackFlow | Information Request Form" />
+    <meta property="og:description" content="Request logistics outsourcing information from TrackFlow for warehousing, last-mile delivery, and reverse logistics." />
+    <meta property="og:url" content="https://trackflow.com/application.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#020617" />
+
+    <link rel="stylesheet" href="assets/site.css" />
   </head>
   <body class="bg-slate-950 font-sans text-slate-100 antialiased">
     <div class="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(14,116,144,0.20),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_50%_80%,rgba(14,165,233,0.14),transparent_40%)]"></div>
@@ -49,7 +62,7 @@
             </a>
           </li>
           <li>
-            <a class="inline-flex items-center gap-2 transition-all duration-200 hover:text-cyan-300" href="index.html#contact">
+            <a href="index.html#contact" class="inline-flex items-center gap-2 transition-all duration-200 hover:text-cyan-300">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.7" />
                 <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.7" />
@@ -336,7 +349,7 @@
                   id="comments"
                   name="comments"
                   rows="4"
-                  maxlength="700"
+                  maxlength="500"
                   aria-describedby="comments-error comments-counter"
                   class="mt-2 w-full rounded-md border border-cyan-300/25 bg-slate-950/60 px-3 py-2 text-slate-100 placeholder-slate-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 ></textarea>
@@ -366,7 +379,7 @@
                 <button
                   type="submit"
                   data-i18n="submitButton"
-                  class="rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  class="rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                 >
                   Submit Request
                 </button>
@@ -374,7 +387,7 @@
                   type="reset"
                   id="clear-form"
                   data-i18n="resetButton"
-                  class="rounded-md border border-cyan-300/40 bg-slate-900 px-5 py-3 text-sm font-semibold text-slate-100 transition-all duration-200 ease-in-out hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  class="rounded-md border border-cyan-300/40 bg-slate-900 px-5 py-3 text-sm font-semibold text-slate-100 transition-all duration-200 ease-in-out hover:shadow-lg active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                 >
                   Clear Form
                 </button>
@@ -392,7 +405,13 @@
         <p data-i18n="copyright">Copyright: © 2025 TrackFlow. All rights reserved.</p>
         <p>
           <span data-i18n="salesLabel">Sales:</span>
-          <a class="text-cyan-300 underline" href="mailto:comercial@trackflow.com">comercial@trackflow.com</a>
+          <a class="text-cyan-300 underline hover:text-cyan-200" href="mailto:comercial@trackflow.com">comercial@trackflow.com</a>
+        </p>
+        <p>
+          LinkedIn:
+          <a class="text-cyan-300 underline hover:text-cyan-200" href="https://linkedin.com/company/trackflow" target="_blank" rel="noopener noreferrer"
+            >https://linkedin.com/company/trackflow</a
+          >
         </p>
       </div>
     </footer>
@@ -559,6 +578,6 @@
         applyLanguage(initialLang);
       })();
     </script>
-    <script src="validation>.js"></script>
+    <script defer src="validation>.js"></script>
   </body>
 </html>

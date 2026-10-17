@@ -306,3 +306,32 @@ Esta plantilla fue creada como parte del Programa de Carrera de Ingeniería de I
 Puedes encontrar otras plantillas y recursos similares en la [página de GitHub de 4Geeks Academy](https://github.com/4geeksacademy).
 
 _Esta plantilla la mantiene 4Geeks Academy para el track de Ingeniería de IA. Uso exclusivo del programa._
+
+---
+
+## Ejecutar el frontend localmente
+
+Instala las herramientas de desarrollo y genera una vez la hoja de estilos optimizada de Tailwind:
+
+```bash
+npm install
+npm run build:css
+```
+
+Después puedes servir los archivos estáticos (`index.html` y `application.html`) con `npx serve`:
+
+```bash
+npx serve .
+```
+
+Esto iniciará un servidor local (normalmente en `http://localhost:3000`) que muestra la página de inicio. Navega a `application.html` para acceder al formulario de solicitud de información.
+
+### Auditoría Lighthouse / PageSpeed
+
+Ejecuta la auditoría móvil de Lighthouse para la página de inicio y el formulario. Debes tener Chrome o Chromium instalado; configura `CHROME_PATH` con la ruta al ejecutable si Lighthouse no lo detecta automáticamente:
+
+```bash
+npm run audit:lighthouse
+```
+
+La auditoría ejecuta cada página tres veces y falla si rendimiento, buenas prácticas o SEO quedan por debajo de 80. Los informes HTML y JSON se guardan en `docs/audits/lighthouse-results/`. Los resultados locales se resumen en [`docs/audits/lighthouse.md`](./docs/audits/lighthouse.md); PageSpeed puede variar en el sitio publicado por las condiciones del servidor y de la red.

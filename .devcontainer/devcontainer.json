@@ -2,7 +2,10 @@
   "name": "ai-engineering-monorepo",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {}
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
   },
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173b35" />
+    <title>TrackFlow | Laboratorio de datos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: light; --forest: #173b35; --lime: #d9ed73; --coral: #df755b; --paper: #f3f4ec; }
+      * { letter-spacing: 0; }
+      body { font-family: "Manrope", sans-serif; background: var(--paper); }
+      .mono { font-family: "DM Mono", monospace; }
+      .grid-paper { background-image: linear-gradient(rgba(23,59,53,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(23,59,53,.035) 1px, transparent 1px); background-size: 24px 24px; }
+      .enter { animation: enter .45s ease-out both; }
+      @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+    </style>
+  </head>
+  <body class="min-h-screen text-[#193b35]">
+    <header class="bg-[#173b35] text-white">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
+        <a href="#inicio" class="flex items-center gap-3" aria-label="TrackFlow, inicio">
+          <span class="grid h-9 w-9 place-items-center rounded-sm bg-[#d9ed73] text-sm font-extrabold text-[#173b35]">T</span>
+          <span class="text-sm font-extrabold uppercase">TrackFlow</span>
+        </a>
+        <span class="mono text-xs text-white/65">OPERACIONES / DATOS</span>
+      </div>
+    </header>
+
+    <main id="inicio" class="grid-paper mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
+      <section class="enter mb-8 flex flex-col justify-between gap-5 border-b border-[#173b35]/15 pb-7 md:flex-row md:items-end">
+        <div>
+          <p class="mono mb-2 text-[11px] uppercase text-[#df755b]">Hito 02 · Utilidades de datos</p>
+          <h1 class="text-3xl font-extrabold sm:text-4xl">Laboratorio de operaciones</h1>
+          <p class="mt-2 max-w-2xl text-sm text-[#49645d]">Prueba las funciones de inventario, envíos y transportistas con datos de muestra.</p>
+        </div>
+        <div class="mono flex gap-5 text-xs text-[#49645d]" aria-label="Resumen de datos">
+          <span><strong class="text-lg text-[#173b35]">04</strong> productos</span>
+          <span><strong class="text-lg text-[#173b35]">03</strong> envíos</span>
+          <span><strong class="text-lg text-[#173b35]">03</strong> carriers</span>
+        </div>
+      </section>
+
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.8fr)]">
+        <div class="enter space-y-5">
+          <section class="rounded-md border border-[#173b35]/15 bg-white p-5 shadow-sm">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="font-bold">Inventario</h2>
+              <span class="mono text-[10px] uppercase text-[#71847d]">Filtrar · ordenar · buscar</span>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <label class="text-xs font-semibold">Criterio
+                <select id="filter-mode" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm">
+                  <option value="warehouse">Almacén</option><option value="category">Categoría</option><option value="low-stock">Stock bajo</option>
+                </select>
+              </label>
+              <label class="text-xs font-semibold">Valor
+                <select id="filter-value" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm">
+                  <option value="Los Angeles">Los Angeles</option><option value="Zaragoza">Zaragoza</option>
+                  <option value="Fashion">Fashion</option><option value="Electronics">Electronics</option><option value="Cosmetics">Cosmetics</option><option value="Home">Home</option><option value="Other">Other</option>
+                </select>
+              </label>
+              <button id="run-filter" class="self-end rounded-sm bg-[#173b35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#27574d]">Filtrar</button>
+            </div>
+            <div class="mt-4 grid gap-3 border-t border-[#173b35]/10 pt-4 sm:grid-cols-[1fr_auto]">
+              <label class="text-xs font-semibold">Ordenar por stock
+                <select id="product-order" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm"><option value="asc">Menor a mayor</option><option value="desc">Mayor a menor</option></select>
+              </label>
+              <button id="sort-products" class="self-end rounded-sm border border-[#173b35] px-4 py-2.5 text-sm font-bold hover:bg-[#edf1e7]">Ordenar</button>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div class="flex gap-2">
+                <label class="min-w-0 flex-1 text-xs font-semibold">Buscar SKU
+                  <input id="product-sku" value="LAPTOP-DELL-15" class="mono mt-1.5 w-full rounded border border-[#cbd4ca] px-3 py-2 text-sm" />
+                </label>
+                <button id="search-product" aria-label="Buscar producto" title="Buscar producto" class="mt-5 rounded-sm bg-[#d9ed73] px-3 font-bold">→</button>
+              </div>
+              <div class="flex gap-2">
+                <label class="min-w-0 flex-1 text-xs font-semibold">Buscar envío
+                  <input id="shipment-id" value="SH-2026-1001" class="mono mt-1.5 w-full rounded border border-[#cbd4ca] px-3 py-2 text-sm" />
+                </label>
+                <button id="search-shipment" aria-label="Buscar envío" title="Buscar envío" class="mt-5 rounded-sm bg-[#d9ed73] px-3 font-bold">→</button>
+              </div>
+              <div class="flex gap-2 sm:col-span-2">
+                <label class="min-w-0 flex-1 text-xs font-semibold">Búsqueda binaria por peso (kg)
+                  <input id="target-weight" type="number" min="0" step="0.1" value="0.8" class="mono mt-1.5 w-full rounded border border-[#cbd4ca] px-3 py-2 text-sm" />
+                </label>
+                <button id="search-weight" class="mt-5 rounded-sm border border-[#173b35] px-4 text-sm font-bold hover:bg-[#edf1e7]">Buscar</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-md border border-[#173b35]/15 bg-white p-5 shadow-sm">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="font-bold">Transportistas</h2>
+              <span class="mono text-[10px] uppercase text-[#71847d]">Fiabilidad · selección</span>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <label class="text-xs font-semibold">Orden de puntualidad
+                <select id="carrier-order" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm"><option value="desc">Mayor a menor</option><option value="asc">Menor a mayor</option></select>
+              </label>
+              <button id="sort-carriers" class="self-end rounded-sm border border-[#173b35] px-4 py-2.5 text-sm font-bold hover:bg-[#edf1e7]">Ordenar</button>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <label class="text-xs font-semibold">Envío
+                <select id="evaluation-shipment" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm"><option>SH-2026-1001</option><option>SH-2026-1002</option><option>SH-2026-1003</option></select>
+              </label>
+              <label class="text-xs font-semibold">SKU del producto
+                <select id="evaluation-sku" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm"><option>LAPTOP-DELL-15</option><option>SHOE-BLK-42</option><option>PERFUME-COCO-50</option><option>TABLE-OAK-01</option></select>
+              </label>
+              <button id="evaluate-carriers" class="self-end rounded-sm bg-[#df755b] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#c96148]">Evaluar</button>
+            </div>
+          </section>
+
+          <section class="rounded-md border border-[#173b35]/15 bg-white p-5 shadow-sm">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="font-bold">Reportes y validación</h2>
+              <span class="mono text-[10px] uppercase text-[#71847d]">Agregaciones</span>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <label class="text-xs font-semibold">Reporte
+                <select id="report-type" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm">
+                  <option value="categories">Productos por categoría</option><option value="inventory">Valor del inventario</option><option value="distance">Distancia media</option><option value="statuses">Envíos por estado</option><option value="top-carriers">Transportistas más usados</option>
+                </select>
+              </label>
+              <button id="run-report" class="self-end rounded-sm bg-[#173b35] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#27574d]">Generar</button>
+            </div>
+            <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+              <label class="text-xs font-semibold">Entidad
+                <select id="validation-entity" class="mt-1.5 w-full rounded border border-[#cbd4ca] bg-white px-3 py-2 text-sm"><option value="product">Producto</option><option value="shipment">Envío</option><option value="carrier">Transportista</option></select>
+              </label>
+              <label class="text-xs font-semibold">Top N
+                <input id="top-n" type="number" min="0" value="3" class="mt-1.5 w-full rounded border border-[#cbd4ca] px-3 py-2 text-sm" />
+              </label>
+              <button id="run-validation" class="self-end rounded-sm border border-[#df755b] px-4 py-2.5 text-sm font-bold text-[#a34b37] hover:bg-[#fff2ed]">Validar</button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="enter min-h-[420px] rounded-md bg-[#173b35] p-5 text-white shadow-sm lg:sticky lg:top-5 lg:h-fit" style="animation-delay: 100ms">
+          <div class="flex items-center justify-between border-b border-white/15 pb-4">
+            <div>
+              <p class="mono text-[10px] uppercase text-[#d9ed73]">Salida</p>
+              <h2 id="result-title" class="mt-1 font-bold">Datos de ejemplo listos</h2>
+            </div>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#d9ed73]" aria-label="Listo"></span>
+          </div>
+          <pre id="result" aria-live="polite" class="mono mt-4 max-h-[70vh] overflow-auto whitespace-pre-wrap break-words text-xs leading-6 text-[#e0e9d8]"></pre>
+        </aside>
+      </div>
+      <footer class="mt-8 border-t border-[#173b35]/15 pt-4 text-xs text-[#63766e]">TrackFlow · Datos de ejemplo para pruebas manuales</footer>
+    </main>
+    <script type="module" src="./dist/demo.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+[project]
+name = "trackflow-suppliers-api"
+version = "0.1.0"
+description = "API de directorio de proveedores de TrackFlow"
+requires-python = ">=3.11"
+dependencies = [
+  "email-validator>=2.2.0",
+  "fastapi>=0.115.0",
+  "pydantic>=2.9.0",
+  "tinydb>=4.8.2",
+  "uvicorn[standard]>=0.30.0",
+]
+
+[project.scripts]
+seed = "seed:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["database", "models", "seed"]
+
+[tool.setuptools.packages.find]
+include = ["routes"]

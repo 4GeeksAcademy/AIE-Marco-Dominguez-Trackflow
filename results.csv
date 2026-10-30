@@ -1,0 +1,34 @@
+section,metric,value,percentage
+Overview,Total records,100,
+Overview,Valid records,95,
+Overview,Invalid records,5,
+Invalid records,Missing or invalid incident ID,0,
+Invalid records,Missing or invalid date,0,
+Invalid records,Missing or invalid country,0,
+Invalid records,Missing or invalid customer type,0,
+Invalid records,Invalid tracking number,1,
+Invalid records,Carrier/country mismatch,1,
+Invalid records,Invalid or missing category,1,
+Invalid records,Invalid or missing description,0,
+Invalid records,Invalid or missing email,1,
+Invalid records,Missing or invalid status,0,
+Invalid records,"Closed incident, no score",1,
+Invalid records,Invalid satisfaction score,0,
+Category,DAMAGE,7,7.4%
+Category,DELAYED_DELIVERY,38,40.0%
+Category,LOST_PARCEL,14,14.7%
+Category,RETURN_REQUEST,17,17.9%
+Category,WRONG_ADDRESS,19,20.0%
+Status,CLOSED,52,54.7%
+Status,DISCARDED,14,14.7%
+Status,OPEN,29,30.5%
+Country,ES,45,47.4%
+Country,US,50,52.6%
+Satisfaction,Closed records,52,
+Satisfaction,Scored closed records,52,
+Satisfaction,Average score,3.06,
+Satisfaction,Score 1,6,
+Satisfaction,Score 2,11,
+Satisfaction,Score 3,15,
+Satisfaction,Score 4,14,
+Satisfaction,Score 5,6,

@@ -31,6 +31,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <span className="brand-mark" aria-hidden="true">T</span>
               <span>TRACKFLOW</span>
             </Link>
+            <nav className="primary-nav" aria-label="Navegación principal">
+              <Link href="/">Candidaturas</Link>
+              <Link href="/incidents">Incidencias</Link>
+            </nav>
             <div className="workspace-name"><span>People &amp; Talent</span><span className="workspace-divider">/</span><span>Equipo interno</span></div>
             <span className="profile-mark" aria-label="Perfil de People">P</span>
           </header>

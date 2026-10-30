@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
@@ -31,7 +32,6 @@ class SupplierStatus(str, Enum):
 
 
 class SupplierInput(BaseModel):
-    # Los esquemas de entrada rechazan claves inesperadas, incluido updated_at.
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
@@ -50,6 +50,70 @@ class SupplierInput(BaseModel):
         if self.currency != expected_currency:
             raise ValueError(f"La moneda de {self.country.value} debe ser {expected_currency.value}.")
         return self
+
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    USER = "user"
+
+
+class UserCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    password: str = Field(min_length=8)
+    name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+
+
+class UserUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=8)
+    role: UserRole | None = None
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    email: EmailStr
+    is_active: bool
+    role: UserRole
+    created_at: datetime
+
+
+class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+
+
+class ProfileResponse(BaseModel):
+    id: UUID
+    user_id: UUID
+    name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+
+
+class LoginInput(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class CurrentUserResponse(BaseModel):
+    email: EmailStr
+    role: UserRole
+    profile: ProfileResponse | None
 
 
 class SupplierResponse(SupplierInput):

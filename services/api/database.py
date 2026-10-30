@@ -11,3 +11,5 @@ DATABASE_PATH = DATA_DIRECTORY / "suppliers.json"
 database = TinyDB(DATABASE_PATH)
 suppliers = database.table("suppliers")
 status_history = database.table("status_history")
+users = database.table("users")
+profiles = database.table("profiles")

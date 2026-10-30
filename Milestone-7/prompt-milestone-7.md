@@ -62,7 +62,7 @@ Antes de marcar como terminada la tarea, asegúrate de VERIFICAR lo siguiente:
 
  El CRUD de usuarios está completamente implementado y accesible a través de la API.
  Cada User tiene un Profile vinculado; name, phone y address se almacenan en Profile, no en User.
- El campo role acepta únicamente admin, manager o user; los usuarios nuevos creados vía POST /users usan user por defecto.
+ El campo role acepta únicamente admin, manager o user; suarios nuevos creados vía POST /users usan user por defecto.
  Las contraseñas se hashean al crear el usuario y se comparan correctamente en el login; el texto plano nunca toca la base de datos.
  El endpoint de login devuelve un token JWT válido y firmado.
  La dependencia get_current_user decodifica correctamente el token e identifica al usuario.

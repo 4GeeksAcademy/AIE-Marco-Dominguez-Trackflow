@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Incident analysis
+
+The incident analysis page uses the FastAPI service in `services/api`. Start that service, then run the frontend with its base URL configured:
+
+```bash
+INCIDENTS_API_BASE_URL=http://127.0.0.1:8000 npm run dev
+```
+
+Open `/incidents` to upload a CSV and view or export aggregated results. The browser sends uploads through a same-origin Next.js route; the CSV is not stored by the frontend.

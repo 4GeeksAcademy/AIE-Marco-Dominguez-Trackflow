@@ -3,12 +3,13 @@ import type {
   SupplierInput,
   SupplierStatus,
 } from "@/app/types/supplier";
+import { apiErrorFromResponse, authenticatedFetch } from "@/app/lib/auth-client";
 
 const apiBase = "/api/suppliers";
 
 // Centraliza errores HTTP para que formularios y acciones muestren el detalle de FastAPI.
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${apiBase}${path}`, {
+  const response = await authenticatedFetch(`${apiBase}${path}`, {
     ...init,
     headers: {
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
@@ -17,16 +18,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store",
   });
 
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    const detail = payload?.detail;
-    const message = Array.isArray(detail)
-      ? detail.map((item: { msg?: string }) => item.msg).filter(Boolean).join(" ")
-      : typeof detail === "string"
-        ? detail
-        : `La API respondió con el estado ${response.status}.`;
-    throw new Error(message);
-  }
+  if (!response.ok) throw await apiErrorFromResponse(response);
 
   return response.json() as Promise<T>;
 }

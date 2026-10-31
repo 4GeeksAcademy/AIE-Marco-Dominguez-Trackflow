@@ -16,8 +16,11 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
   const upstreamUrl = new URL(
     `${apiBaseUrl.replace(/\/+$/, "")}/api/incidents/${segments.map(encodeURIComponent).join("/")}`,
   );
-  const contentType = request.headers.get("content-type");
-  const headers = contentType ? { "content-type": contentType } : undefined;
+  const headers = new Headers();
+  for (const name of ["content-type", "authorization", "accept"]) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   try {
     // Se reenvía el cuerpo original para conservar el boundary del multipart.

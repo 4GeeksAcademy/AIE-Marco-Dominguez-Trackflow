@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { apiErrorFromResponse, authenticatedFetch } from "@/app/lib/auth-client";
 
 type IncidentSummary = {
   total_records: number;
@@ -66,24 +67,35 @@ export default function IncidentAnalysis() {
 
     try {
       // FormData envía el archivo como multipart; el navegador genera el boundary.
-      const response = await fetch("/api/incidents/analyze", {
+      const response = await authenticatedFetch("/api/incidents/analyze", {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(
-          typeof payload?.detail === "string"
-            ? payload.detail
-            : `El análisis falló (HTTP ${response.status}).`,
-        );
-      }
+      if (!response.ok) throw await apiErrorFromResponse(response);
       setSummary(await response.json() as IncidentSummary);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo analizar el archivo.");
       setSummary(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function downloadResults() {
+    setError("");
+    try {
+      const response = await authenticatedFetch("/api/incidents/results/export");
+      if (!response.ok) throw await apiErrorFromResponse(response);
+
+      // Un enlace normal no puede añadir Authorization, así que la descarga usa fetch autenticado.
+      const downloadUrl = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "incidents-results.csv";
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo descargar el archivo.");
     }
   }
 
@@ -128,9 +140,9 @@ export default function IncidentAnalysis() {
               <p className="eyebrow">RESUMEN DEL ARCHIVO</p>
               <h2 id="incident-results-title">Resultados del análisis</h2>
             </div>
-            <a className="secondary-button" href="/api/incidents/results/export" download>
+            <button className="secondary-button" type="button" onClick={downloadResults}>
               Descargar CSV
-            </a>
+            </button>
           </div>
 
           <dl className="incident-metrics">

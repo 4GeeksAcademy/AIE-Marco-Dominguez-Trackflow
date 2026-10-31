@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DM_Sans, IBM_Plex_Mono } from "next/font/google";
+import AuthGuard from "@/app/components/auth-guard";
+import SessionActions from "@/app/components/session-actions";
 import "./globals.css";
 
 const dmSans = DM_Sans({ variable: "--font-trackflow-sans", subsets: ["latin"] });
@@ -23,8 +25,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             </Link>
             <nav aria-label="Navegación principal"><Link className="nav-link active" href="/">Directorio</Link><span className="nav-context">OPERACIONES</span></nav>
             <span className="market-label"><i /> USA <b>·</b> España</span>
+            <SessionActions />
           </header>
-          {children}
+          <AuthGuard>{children}</AuthGuard>
           <footer className="app-footer"><span>TRACKFLOW · SUPPLIER OPERATIONS</span><span>LOS ANGELES / ZARAGOZA</span></footer>
         </div>
       </body>

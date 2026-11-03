@@ -6,11 +6,14 @@ import { logout } from "@/app/lib/auth-client";
 
 export default function SessionActions() {
   const pathname = usePathname();
-  if (pathname === "/login" || pathname === "/register") return null;
+  if (["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
+    return null;
+  }
 
   return (
     <div className="session-actions">
       <Link href="/account/profile">Mi perfil</Link>
+      <Link href="/account/change-password">Cambiar contraseña</Link>
       <button type="button" onClick={logout}>Cerrar sesión</button>
     </div>
   );

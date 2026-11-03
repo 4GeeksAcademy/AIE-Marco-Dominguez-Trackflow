@@ -128,6 +128,12 @@ tbody tr:hover { background: #fbfcfa; }
 .auth-form { display: grid; gap: 14px; }
 .auth-field { display: grid; gap: 6px; color: #4c5a51; font-size: 11px; font-weight: 650; }
 .auth-field input { width: 100%; min-width: 0; height: 40px; border: 1px solid #d5ded7; border-radius: 4px; padding: 0 10px; outline: 0; background: white; color: var(--ink); font-size: 12px; font-weight: 400; }
+.password-input-wrap { position: relative; display: block; }
+.auth-field .password-input-wrap input { padding-right: 42px; }
+.password-visibility-toggle { position: absolute; top: 1px; right: 1px; display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 3px; background: transparent; color: var(--muted); cursor: pointer; }
+.password-visibility-toggle:hover { color: var(--green-dark); }
+.password-visibility-toggle:focus-visible { outline: 2px solid var(--green); outline-offset: -3px; }
+.password-visibility-toggle svg { width: 18px; height: 18px; }
 .auth-field input:focus { border-color: var(--green); box-shadow: 0 0 0 2px #dcece3; }
 .auth-field-error { color: #873d32; font-size: 10px; font-weight: 500; }
 .auth-form-error { border-left: 3px solid var(--coral); margin: 0; padding: 8px 10px; background: var(--coral-pale); color: #873d32; font-size: 11px; }

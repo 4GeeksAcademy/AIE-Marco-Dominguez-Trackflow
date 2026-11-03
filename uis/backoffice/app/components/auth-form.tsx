@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ApiError, login, register, type RegistrationInput } from "@/app/lib/auth-client";
+import PasswordInput from "@/app/components/password-input";
 
 type AuthFormProps = { mode: "login" | "register" };
 type FieldName = "email" | "password" | "name" | "phone" | "address";
@@ -17,7 +18,16 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
   const isRegister = mode === "register";
+
+  useEffect(() => {
+    // The query parameter carries a one-time success message after a password reset.
+    setResetSuccess(
+      !isRegister
+        && new URLSearchParams(window.location.search).get("passwordReset") === "success",
+    );
+  }, [isRegister]);
 
   function updateField(name: FieldName, value: string) {
     setFields((current) => ({ ...current, [name]: value }));
@@ -66,6 +76,26 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   function renderField(name: FieldName, label: string, type = "text") {
     const error = fieldErrors[name];
+    if (name === "password") {
+      return (
+        <div className="auth-field">
+          <label htmlFor={name}>{label}</label>
+          <PasswordInput
+            id={name}
+            name={name}
+            value={fields[name]}
+            onChange={(event) => updateField(name, event.target.value)}
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            required
+            minLength={8}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? `${name}-error` : undefined}
+          />
+          {error && <span className="auth-field-error" id={`${name}-error`}>{error}</span>}
+        </div>
+      );
+    }
+
     return (
       <label className="auth-field">
         <span>{label}</span>
@@ -74,9 +104,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
           name={name}
           value={fields[name]}
           onChange={(event) => updateField(name, event.target.value)}
-          autoComplete={name === "email" ? "email" : name === "password" ? (isRegister ? "new-password" : "current-password") : "off"}
-          required={name === "email" || name === "password"}
-          minLength={name === "password" ? 8 : undefined}
+          autoComplete={name === "email" ? "email" : "off"}
+          required={name === "email"}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${name}-error` : undefined}
         />
@@ -92,6 +121,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
           <p className="eyebrow">TRACKFLOW · CUENTA</p>
           <h1 id="auth-title">{isRegister ? "Crear cuenta" : "Iniciar sesión"}</h1>
         </div>
+        {resetSuccess && (
+          <p className="auth-success" role="status">Tu contraseña se actualizó. Ya puedes iniciar sesión.</p>
+        )}
         <form className="auth-form" onSubmit={handleSubmit}>
           {renderField("email", "Email", "email")}
           {renderField("password", "Contraseña", "password")}
@@ -107,6 +139,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
             {submitting ? "Procesando…" : isRegister ? "Crear cuenta" : "Entrar"}
           </button>
         </form>
+        {!isRegister && (
+          <p className="auth-switch">
+            <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
+          </p>
+        )}
         <p className="auth-switch">
           {isRegister ? "¿Ya tienes una cuenta?" : "¿Aún no tienes una cuenta?"}{" "}
           <Link href={isRegister ? "/login" : "/register"}>

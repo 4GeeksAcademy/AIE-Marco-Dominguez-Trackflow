@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from secrets import token_urlsafe
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -32,6 +33,46 @@ def create_access_token(user_uuid: str) -> str:
         settings.secret_key.get_secret_value(),
         algorithm=ALGORITHM,
     )
+
+
+def create_password_reset_token(user_uuid: str) -> tuple[str, str, datetime]:
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.password_reset_token_expire_minutes
+    )
+    jti = token_urlsafe(32)
+    claims = {
+        "sub": user_uuid,
+        "jti": jti,
+        "purpose": "password_reset",
+        "exp": expires_at,
+    }
+    token = jwt.encode(
+        claims,
+        settings.secret_key.get_secret_value(),
+        algorithm=ALGORITHM,
+    )
+    return token, jti, expires_at
+
+
+def decode_password_reset_token(token: str) -> tuple[str, str] | None:
+    try:
+        claims = jwt.decode(
+            token,
+            settings.secret_key.get_secret_value(),
+            algorithms=[ALGORITHM],
+        )
+    except JWTError:
+        return None
+
+    user_uuid = claims.get("sub")
+    jti = claims.get("jti")
+    if (
+        claims.get("purpose") != "password_reset"
+        or not isinstance(user_uuid, str)
+        or not isinstance(jti, str)
+    ):
+        return None
+    return user_uuid, jti
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):

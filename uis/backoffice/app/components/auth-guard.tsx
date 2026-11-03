@@ -18,7 +18,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const [sessionCheck, setSessionCheck] = useState<SessionCheck | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const publicRoute = pathname === "/login" || pathname === "/register";
+  const publicRoute = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(pathname);
 
   useEffect(() => {
     const redirectToLogin = () => router.replace("/login");

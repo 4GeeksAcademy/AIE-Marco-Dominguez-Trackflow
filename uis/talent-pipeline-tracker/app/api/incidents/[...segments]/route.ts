@@ -27,7 +27,7 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
     const upstream = await fetch(upstreamUrl, {
       method: request.method,
       headers,
-      body: request.method === "GET" ? undefined : await request.arrayBuffer(),
+      body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
       cache: "no-store",
     });
     const responseHeaders = new Headers();
@@ -50,3 +50,4 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
 
 export const GET = proxy;
 export const POST = proxy;
+export const PATCH = proxy;

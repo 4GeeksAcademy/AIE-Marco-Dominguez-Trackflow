@@ -74,3 +74,6 @@ varios workers o instancias, migra este estado a un almacenamiento transaccional
 El rate limiting y la auditoría también usan TinyDB y comparten la misma limitación de un
 único proceso. Si la API está detrás de un proxy, configura una estrategia de proxy confiable
 antes de depender de la IP registrada para controles de seguridad.
+## Gestor de incidencias
+
+Endpoints bajo `/api/incidents` (requieren JWT): `POST` (crea en estado `open`; id y fechas los genera el servidor), `GET` con filtros `status`, `origin`, `branch`, `category`, `GET /summary`, `GET /{id}` y `PATCH /{id}/status`. Los errores de validación devuelven `400` con `detail: [{field, msg}]`; una transición no permitida devuelve `400`, un ID inexistente `404` y cualquier fallo inesperado un `500` genérico. Los valores permitidos y las transiciones se definen en `packages/shared/python/incident_rules.py`. El histórico se carga con `scripts/seed_incidents.py`.

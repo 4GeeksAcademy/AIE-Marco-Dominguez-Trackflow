@@ -100,7 +100,7 @@ export default function IncidentAnalysis() {
   }
 
   return (
-    <main className="incident-content">
+    <section className="incident-content">
       <div className="incident-heading">
         <div>
           <p className="eyebrow">OPERACIONES · ATENCIÓN AL CLIENTE</p>
@@ -200,6 +200,6 @@ export default function IncidentAnalysis() {
           </div>
         </section>
       )}
-    </main>
+    </section>
   );
 }

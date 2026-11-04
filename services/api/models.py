@@ -1,8 +1,14 @@
+import sys
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+# Los valores permitidos de incidencias viven en packages/shared/python (fuente única).
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "packages" / "shared" / "python"))
+import incident_rules  # noqa: E402
 
 
 class Country(str, Enum):
@@ -151,3 +157,44 @@ class StatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: SupplierStatus
+
+
+def _string_enum(name: str, values: tuple[str, ...]) -> type[Enum]:
+    return Enum(name, {value.upper(): value for value in values}, type=str)
+
+
+IncidentStatus = _string_enum("IncidentStatus", incident_rules.INCIDENT_STATUSES)
+IncidentCategory = _string_enum("IncidentCategory", incident_rules.INCIDENT_CATEGORIES)
+IncidentOrigin = _string_enum("IncidentOrigin", incident_rules.INCIDENT_ORIGINS)
+IncidentBranch = _string_enum("IncidentBranch", incident_rules.INCIDENT_BRANCHES)
+
+
+class IncidentInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    title: str = Field(min_length=1, max_length=incident_rules.TITLE_MAX_LENGTH)
+    description: str = Field(min_length=1)
+    category: IncidentCategory
+    origin: IncidentOrigin
+    branch: IncidentBranch
+
+
+class IncidentResponse(IncidentInput):
+    id: str
+    status: IncidentStatus
+    created_at: datetime
+    updated_at: datetime
+
+
+class IncidentStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: IncidentStatus
+
+
+class IncidentSummary(BaseModel):
+    total: int
+    by_status: dict[str, int]
+    by_category: dict[str, int]
+    by_origin: dict[str, int]
+    by_branch: dict[str, int]

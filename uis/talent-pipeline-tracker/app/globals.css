@@ -235,6 +235,29 @@ h2 { margin-bottom: 0; font-size: 17px; font-weight: 650; }
 .incident-count-list li span { overflow-wrap: anywhere; }
 .incident-count-list li strong { flex: 0 0 auto; color: var(--ink); font-size: 11px; }
 .incident-report-note, .incident-empty { margin: -4px 0 10px; color: var(--muted); font-size: 10px; }
+.incident-language { display: flex; gap: 6px; align-self: flex-start; }
+.incident-language button { min-width: 48px; min-height: 44px; }
+.incident-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.incident-form .form-field-wide { grid-column: 1 / -1; }
+.incident-input, .incident-select { width: 100%; min-height: 48px; border: 1px solid #dce2da; border-radius: 6px; padding: 10px 11px; background: white; color: var(--ink); font-size: 14px; font-weight: 400; }
+.incident-input:focus, .incident-select:focus { outline: 2px solid rgba(32,91,72,.28); outline-offset: 1px; border-color: var(--green); }
+.incident-input[aria-invalid="true"], .incident-select[aria-invalid="true"] { border-color: var(--red); }
+.incident-branch-highlight { border-left: 4px solid var(--green); padding-left: 10px; background: #f1f6ee; }
+.incident-branch-hint { color: var(--green); font-size: 11px; font-weight: 500; }
+.incident-submit { min-height: 48px; min-width: 200px; }
+.incident-success { margin: 0; border-left: 3px solid var(--green); padding: 10px 13px; background: #e2f2e6; color: #23643c; font-size: 12px; }
+.incident-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.incident-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.incident-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #edf0eb; padding: 12px 0; }
+.incident-item-main { display: grid; min-width: 0; gap: 4px; }
+.incident-item-main span { color: var(--muted); font-size: 11px; }
+.incident-item .incident-select { width: 180px; flex: 0 0 auto; }
+.incident-error .secondary-button { margin-left: 10px; }
+@media (max-width: 760px) {
+  .incident-form, .incident-filters { grid-template-columns: 1fr; }
+  .incident-item { align-items: stretch; flex-direction: column; }
+  .incident-item .incident-select { width: 100%; }
+}
 
 @media (max-width: 820px) {
   .incident-content { width: min(100% - 36px, 680px); padding-top: 38px; }

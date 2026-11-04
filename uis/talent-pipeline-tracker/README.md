@@ -44,3 +44,13 @@ INCIDENTS_API_BASE_URL=http://127.0.0.1:8000 npm run dev
 ```
 
 Open `/incidents` to upload a CSV and view or export aggregated results. The browser sends uploads through a same-origin Next.js route; the CSV is not stored by the frontend.
+
+## Authentication
+
+The identity routes in this app and the backoffice require `AUTH_API_BASE_URL`, configured to the FastAPI service. Keep it server-side (do not prefix it with `NEXT_PUBLIC_`):
+
+```bash
+AUTH_API_BASE_URL=http://127.0.0.1:8000 npm run dev
+```
+
+Start `services/api` first. The same setting is required when running `uis/backoffice`.

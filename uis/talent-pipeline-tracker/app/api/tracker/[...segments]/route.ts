@@ -18,8 +18,10 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
   upstreamUrl.search = new URL(request.url).search;
 
   const headers = new Headers();
-  const contentType = request.headers.get("content-type");
-  if (contentType) headers.set("content-type", contentType);
+  for (const name of ["content-type", "authorization", "accept"]) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const upstream = await fetch(upstreamUrl, {

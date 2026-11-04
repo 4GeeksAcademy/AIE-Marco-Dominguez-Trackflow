@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from database import status_history, suppliers
+from core.security import get_current_user
 from models import (
     Country,
     ProductCategory,
@@ -12,7 +13,11 @@ from models import (
     SupplierResponse,
 )
 
-router = APIRouter(prefix="/suppliers", tags=["suppliers"])
+router = APIRouter(
+    prefix="/suppliers",
+    tags=["suppliers"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 def get_supplier_document(supplier_id: int) -> dict:

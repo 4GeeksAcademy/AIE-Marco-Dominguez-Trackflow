@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import AuthGuard from "@/app/components/auth-guard";
+import SessionActions from "@/app/components/session-actions";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,9 +39,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/incidents">Incidencias</Link>
             </nav>
             <div className="workspace-name"><span>People &amp; Talent</span><span className="workspace-divider">/</span><span>Equipo interno</span></div>
-            <span className="profile-mark" aria-label="Perfil de People">P</span>
+            <Suspense fallback={null}>
+              <SessionActions />
+            </Suspense>
           </header>
-          {children}
+          <Suspense fallback={<main className="auth-loading" role="status">Comprobando sesión…</main>}>
+            <AuthGuard>{children}</AuthGuard>
+          </Suspense>
           <footer className="app-footer"><span>TRACKFLOW TALENT OPERATIONS</span><span>LOS ANGELES · ZARAGOZA</span></footer>
         </div>
       </body>

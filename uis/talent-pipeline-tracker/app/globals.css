@@ -179,6 +179,26 @@ h2 { margin-bottom: 0; font-size: 17px; font-weight: 650; }
 .links-heading { padding-top: 3px; }
 .form-error { margin: 10px 0 0; border-left: 3px solid var(--red); padding: 9px 12px; background: #fbefec; color: #8c4037; font-size: 12px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
+.session-actions { display: flex; align-items: center; gap: 12px; font-size: 11px; }
+.session-actions a { color: var(--green); font-weight: 650; text-decoration: none; }
+.session-actions button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 11px; }
+.session-actions button:hover { color: var(--red); text-decoration: underline; }
+.auth-loading { display: grid; min-height: 240px; place-items: center; color: var(--muted); font-size: 12px; }
+.auth-page { display: grid; width: min(100% - 40px, 480px); min-height: calc(100vh - 128px); align-content: center; margin: 0 auto; padding: 48px 0; }
+.auth-card { border: 1px solid #e0e5df; border-radius: 7px; background: white; padding: 28px; box-shadow: 0 7px 24px rgba(34, 51, 40, .035); }
+.auth-heading { margin-bottom: 24px; }
+.auth-heading .eyebrow { margin-bottom: 8px; }
+.auth-heading h1 { font-size: 24px; }
+.auth-form { display: grid; gap: 14px; }
+.auth-field { display: grid; gap: 7px; color: #455149; font-size: 11px; font-weight: 650; }
+.auth-field input { width: 100%; min-width: 0; height: 41px; border: 1px solid #dce2da; border-radius: 5px; padding: 0 11px; background: white; color: var(--ink); font-size: 12px; font-weight: 400; }
+.auth-field input:focus { outline: 2px solid rgba(32, 91, 72, .28); outline-offset: 1px; border-color: var(--green); }
+.auth-field-error { color: var(--red); font-size: 10px; font-weight: 500; }
+.auth-form-error { margin: 0; border-left: 3px solid var(--red); padding: 9px 12px; background: #fbefec; color: #8c4037; font-size: 12px; }
+.auth-success { margin: 0; color: var(--green); font-size: 11px; font-weight: 650; }
+.auth-submit { width: 100%; margin-top: 3px; }
+.auth-switch { margin: 18px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
+.auth-switch a { color: var(--green); font-weight: 650; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 
 .incident-content { width: min(100% - 56px, 1180px); margin: 0 auto; padding: 56px 0 72px; }
@@ -246,6 +266,8 @@ h2 { margin-bottom: 0; font-size: 17px; font-weight: 650; }
 
 @media (max-width: 580px) {
   .topbar { height: 58px; padding: 0 18px; }
+  .session-actions { gap: 7px; font-size: 10px; }
+  .session-actions button { font-size: 10px; }
   .brand-lockup { gap: 7px; font-size: 10px; }
   .brand-mark { width: 27px; }
   .workspace-name { gap: 7px; font-size: 10px; }

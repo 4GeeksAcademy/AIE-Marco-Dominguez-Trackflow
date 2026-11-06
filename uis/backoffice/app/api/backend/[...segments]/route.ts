@@ -6,19 +6,20 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
   // La URL de identidad se configura en el servidor y no llega al navegador.
   const apiBaseUrl = process.env.AUTH_API_BASE_URL;
   if (!apiBaseUrl) {
-    return Response.json(
-      { detail: "Falta configurar AUTH_API_BASE_URL." },
-      { status: 500 },
-    );
+    return Response.json({ detail: "El servicio no está disponible." }, { status: 500 });
   }
 
   // Los segmentos dinámicos permiten reenviar rutas como /auth/me y /users.
-  const { segments } = await context.params;
-  const path = segments.map(encodeURIComponent).join("/");
-  const upstreamUrl = new URL(
-    `${apiBaseUrl.replace(/\/+$/, "")}/${path}`,
-  );
-  upstreamUrl.search = new URL(request.url).search;
+  let upstreamUrl: URL;
+  try {
+    // Una URL de backend inválida se trata como un problema de configuración conocido.
+    const { segments } = await context.params;
+    const path = segments.map(encodeURIComponent).join("/");
+    upstreamUrl = new URL(`${apiBaseUrl.replace(/\/+$/, "")}/${path}`);
+    upstreamUrl.search = new URL(request.url).search;
+  } catch {
+    return Response.json({ detail: "El servicio no está disponible." }, { status: 500 });
+  }
 
   // Solo se reenvían los encabezados necesarios para JSON y autenticación.
   const headers = new Headers();

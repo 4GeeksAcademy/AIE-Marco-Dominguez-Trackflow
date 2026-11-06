@@ -186,7 +186,7 @@ def create_user(
             }
         )
     except Exception:
-        # TinyDB has no transactions, so undo the account if profile creation fails.
+        # This covers only the profile insert; rollback then re-raise preserves the failure cause.
         users.remove(Query().id == user_id)
         profiles.remove(Query().user_id == user_id)
         raise

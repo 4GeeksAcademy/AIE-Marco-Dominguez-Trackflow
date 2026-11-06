@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { changePassword } from "@/app/lib/auth-client";
+import { changePassword, safeErrorMessage } from "@/app/lib/auth-client";
 import PasswordInput from "@/app/components/password-input";
 
 type PasswordFields = {
@@ -40,7 +40,7 @@ export default function ChangePasswordPage() {
       setFields(emptyFields);
       setSaved(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo cambiar la contraseña.");
+      setError(safeErrorMessage(cause, "No se pudo cambiar la contraseña."));
     } finally {
       setSaving(false);
     }
@@ -92,7 +92,7 @@ export default function ChangePasswordPage() {
           {error && <p className="auth-form-error" role="alert">{error}</p>}
           {saved && <p className="auth-success" role="status">Contraseña actualizada correctamente.</p>}
           <button className="primary-button auth-submit" type="submit" disabled={saving}>
-            {saving ? "Guardando…" : "Guardar contraseña"}
+            {saving ? "Guardando…" : error ? "Reintentar" : "Guardar contraseña"}
           </button>
         </form>
         <p className="auth-switch"><Link href="/account/profile">Volver a mi perfil</Link></p>

@@ -5,12 +5,18 @@ type RouteContext = {
 async function proxy(request: Request, context: RouteContext): Promise<Response> {
   // La URL del backend se queda en el servidor y no se expone al navegador.
   const apiBaseUrl = process.env.SUPPLIERS_API_BASE_URL ?? "http://127.0.0.1:8000";
-  const { segments = [] } = await context.params;
-  const supplierPath = segments.map(encodeURIComponent).join("/");
-  const upstreamUrl = new URL(
-    `${apiBaseUrl.replace(/\/+$/, "")}/suppliers${supplierPath ? `/${supplierPath}` : ""}`,
-  );
-  upstreamUrl.search = new URL(request.url).search;
+  let upstreamUrl: URL;
+  try {
+    // Una URL de backend inválida se trata como un problema de configuración conocido.
+    const { segments = [] } = await context.params;
+    const supplierPath = segments.map(encodeURIComponent).join("/");
+    upstreamUrl = new URL(
+      `${apiBaseUrl.replace(/\/+$/, "")}/suppliers${supplierPath ? `/${supplierPath}` : ""}`,
+    );
+    upstreamUrl.search = new URL(request.url).search;
+  } catch {
+    return Response.json({ detail: "El servicio no está disponible." }, { status: 500 });
+  }
 
   const headers = new Headers();
   for (const name of ["content-type", "authorization", "accept"]) {

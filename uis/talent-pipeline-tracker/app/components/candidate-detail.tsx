@@ -10,6 +10,7 @@ import {
   getCandidateNotes,
   patchCandidate,
 } from "@/app/lib/tracker-api";
+import { safeErrorMessage } from "@/app/lib/auth-client";
 import { candidateStages, candidateStatuses, stageLabel, statusLabel } from "@/app/lib/candidate-options";
 import type { Candidate, CandidateNote, CandidateStage, CandidateStatus } from "@/app/types/candidate";
 
@@ -54,32 +55,48 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
       ? "Cambios guardados correctamente."
       : "");
   const [notesFeedback, setNotesFeedback] = useState("");
+  const [retryCandidate, setRetryCandidate] = useState(0);
+  const [retryNotes, setRetryNotes] = useState(0);
+  const [failedUpdate, setFailedUpdate] = useState<{ field: "status" | "stage"; value: CandidateStatus | CandidateStage } | null>(null);
+  const [deletingNoteId, setDeletingNoteId] = useState("");
+  const [notesErrorAction, setNotesErrorAction] = useState<"load" | "save" | "delete" | null>(null);
+  const [failedDeleteNote, setFailedDeleteNote] = useState<CandidateNote | null>(null);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError("");
     getCandidate(id)
       .then((result) => { if (active) setCandidate(result); })
-      .catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : "No se encontró la candidatura."); })
+      .catch((cause: unknown) => { if (active) setError(safeErrorMessage(cause, "No se encontró la candidatura.")); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [id]);
+  }, [id, retryCandidate]);
 
   useEffect(() => {
     let active = true;
+    setNotesLoading(true);
+    setNotesError("");
     getCandidateNotes(id)
-      .then((result) => { if (active) setNotes(result.data); })
-      .catch((cause: unknown) => { if (active) setNotesError(cause instanceof Error ? cause.message : "No se pudieron cargar las notas."); })
+      .then((result) => { if (active) setNotes(result.data ?? []); })
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setNotesError(safeErrorMessage(cause, "No se pudieron cargar las notas."));
+        setNotesErrorAction("load");
+      })
       .finally(() => { if (active) setNotesLoading(false); });
     return () => { active = false; };
-  }, [id]);
+  }, [id, retryNotes]);
 
   async function refreshNotes() {
     setNotesError("");
+    setNotesErrorAction(null);
     try {
       const result = await getCandidateNotes(id);
-      setNotes(result.data);
+      setNotes(result.data ?? []);
     } catch (cause) {
-      setNotesError(cause instanceof Error ? cause.message : "No se pudieron actualizar las notas.");
+      setNotesError(safeErrorMessage(cause, "No se pudieron actualizar las notas."));
+      setNotesErrorAction("load");
     }
   }
 
@@ -87,6 +104,7 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
     if (!candidate) return;
     setSavingField(field);
     setFeedback("");
+    setFailedUpdate(null);
     try {
       const updated = field === "status"
         ? await patchCandidate(id, { status: value as CandidateStatus })
@@ -94,7 +112,8 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
       setCandidate(updated);
       setFeedback("Cambio guardado.");
     } catch (cause) {
-      setFeedback(cause instanceof Error ? cause.message : "No se pudo guardar el cambio.");
+      setFeedback(safeErrorMessage(cause, "No se pudo guardar el cambio."));
+      setFailedUpdate({ field, value });
     } finally {
       setSavingField("");
     }
@@ -106,31 +125,41 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
     if (!content) return;
     setSavingNote(true);
     setNotesError("");
+    setNotesErrorAction(null);
+    setFailedDeleteNote(null);
     setNotesFeedback("");
     try {
       await createCandidateNote(id, content);
       setNoteText("");
       await refreshNotes();
-      setCandidate((current) => current ? { ...current, notes_count: current.notes_count + 1 } : current);
+      setCandidate((current) => current ? { ...current, notes_count: (current.notes_count ?? 0) + 1 } : current);
       setNotesFeedback("Nota añadida.");
     } catch (cause) {
-      setNotesError(cause instanceof Error ? cause.message : "No se pudo añadir la nota.");
+      setNotesError(safeErrorMessage(cause, "No se pudo añadir la nota."));
+      setNotesErrorAction("save");
     } finally {
       setSavingNote(false);
     }
   }
 
-  async function removeNote(note: CandidateNote) {
-    if (!window.confirm("¿Eliminar esta nota interna? Esta acción no se puede deshacer.")) return;
+  async function removeNote(note: CandidateNote, retry = false) {
+    if (!retry && !window.confirm("¿Eliminar esta nota interna? Esta acción no se puede deshacer.")) return;
     setNotesError("");
+    setNotesErrorAction(null);
     setNotesFeedback("");
+    setDeletingNoteId(note.id);
+    setFailedDeleteNote(null);
     try {
       await deleteCandidateNote(id, note.id);
       setNotes((current) => current.filter((item) => item.id !== note.id));
       setCandidate((current) => current ? { ...current, notes_count: Math.max(0, current.notes_count - 1) } : current);
       setNotesFeedback("Nota eliminada.");
     } catch (cause) {
-      setNotesError(cause instanceof Error ? cause.message : "No se pudo eliminar la nota.");
+      setNotesError(safeErrorMessage(cause, "No se pudo eliminar la nota."));
+      setNotesErrorAction("delete");
+      setFailedDeleteNote(note);
+    } finally {
+      setDeletingNoteId("");
     }
   }
 
@@ -139,7 +168,7 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
   }
 
   if (error || !candidate) {
-    return <main className="detail-page-content"><Link className="back-link" href={backHref}>← Volver al pipeline</Link><div className="state-panel error-panel" role="alert"><h1>No se pudo abrir la candidatura</h1><p>{error || "No se encontró el registro solicitado."}</p></div></main>;
+    return <main className="detail-page-content"><Link className="back-link" href={backHref}>← Volver al pipeline</Link><div className="state-panel error-panel" role="alert"><h1>No se pudo abrir la candidatura</h1><p>{error || "No se encontró el registro solicitado."}</p><button className="secondary-button" type="button" onClick={() => setRetryCandidate((count) => count + 1)}>Reintentar</button></div></main>;
   }
 
   const editHref = `/candidates/${candidate.id}/edit${listQuery ? `?${listQuery}` : ""}`;
@@ -159,7 +188,7 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
       <div className="detail-grid">
         <section className="detail-main-column">
           <div className="detail-section status-section">
-            <div className="detail-section-title"><div><p className="eyebrow">PROCESO</p><h2>Estado de la candidatura</h2></div><span className="sync-indicator" role="status" aria-live="polite">{savingField ? "Guardando…" : feedback || "Actualizado al instante"}</span></div>
+            <div className="detail-section-title"><div><p className="eyebrow">PROCESO</p><h2>Estado de la candidatura</h2></div><span className="sync-indicator" role="status" aria-live="polite">{savingField ? "Guardando…" : feedback || "Actualizado al instante"}</span>{failedUpdate && <button className="secondary-button" type="button" onClick={() => void updateField(failedUpdate.field, failedUpdate.value)}>Reintentar</button>}</div>
             <div className="workflow-controls">
               <label className="workflow-control"><span>Estado</span><select disabled={Boolean(savingField)} value={candidate.status} onChange={(event) => updateField("status", event.target.value as CandidateStatus)}>{candidateStatuses.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
               <span className="workflow-separator" aria-hidden="true">→</span>
@@ -184,17 +213,17 @@ export default function CandidateDetail({ id }: CandidateDetailProps) {
 
         <aside className="notes-section">
           <div className="detail-section-title"><div><p className="eyebrow">SEGUIMIENTO INTERNO</p><h2>Notas del equipo</h2></div><span className="note-count">{candidate.notes_count}</span></div>
-          <form className="note-form" onSubmit={addNote}>
+          <form id="candidate-note-form" className="note-form" onSubmit={addNote}>
             <label className="sr-only" htmlFor="candidate-note">Escribe una nota interna</label>
             <textarea id="candidate-note" rows={3} maxLength={2000} placeholder="Añade contexto para el equipo…" value={noteText} onChange={(event) => setNoteText(event.target.value)} required />
             <div className="note-form-footer"><span>Visible solo para el equipo</span><button className="primary-button compact-button" type="submit" disabled={savingNote || !noteText.trim()}>{savingNote ? "Añadiendo…" : "Añadir nota"}</button></div>
           </form>
-          {notesError && <p className="inline-error" role="alert">{notesError}</p>}
+          {notesError && <p className="inline-error" role="alert">{notesError} {notesErrorAction === "load" && <button className="text-button" type="button" onClick={() => setRetryNotes((count) => count + 1)}>Reintentar carga</button>} {notesErrorAction === "save" && <button className="text-button" type="button" onClick={() => { const form = document.getElementById("candidate-note-form"); if (form instanceof HTMLFormElement) form.requestSubmit(); }}>Reintentar nota</button>} {notesErrorAction === "delete" && failedDeleteNote && <button className="text-button" type="button" onClick={() => void removeNote(failedDeleteNote, true)}>Reintentar eliminación</button>}</p>}
           {notesFeedback && <p className="inline-success" role="status">{notesFeedback}</p>}
           <div className="notes-list" aria-live="polite">
             {notesLoading ? <p className="notes-message">Cargando notas…</p> : notes.length === 0 ? <p className="notes-message">Todavía no hay notas para esta candidatura.</p> : notes.map((note) => (
               <article className="note-entry" key={note.id}>
-                <div className="note-entry-meta"><time dateTime={note.created_at}>{dateTimeLabel(note.created_at)}</time><button className="delete-note-button" type="button" aria-label={`Eliminar nota del ${dateTimeLabel(note.created_at)}`} onClick={() => removeNote(note)}>Eliminar</button></div>
+                <div className="note-entry-meta"><time dateTime={note.created_at}>{dateTimeLabel(note.created_at)}</time><button className="delete-note-button" type="button" aria-label={`Eliminar nota del ${dateTimeLabel(note.created_at)}`} disabled={deletingNoteId === note.id} onClick={() => removeNote(note)}>{deletingNoteId === note.id ? "Eliminando…" : "Eliminar"}</button></div>
                 <p>{note.content}</p>
               </article>
             ))}

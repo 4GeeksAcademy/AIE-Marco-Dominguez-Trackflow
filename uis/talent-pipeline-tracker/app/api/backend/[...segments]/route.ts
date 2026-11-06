@@ -13,12 +13,16 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
   }
 
   // Los segmentos dinámicos permiten reenviar rutas como /auth/me y /users.
-  const { segments } = await context.params;
-  const path = segments.map(encodeURIComponent).join("/");
-  const upstreamUrl = new URL(
-    `${apiBaseUrl.replace(/\/+$/, "")}/${path}`,
-  );
-  upstreamUrl.search = new URL(request.url).search;
+  let upstreamUrl: URL;
+  try {
+    // Una URL de backend inválida se trata como un problema de configuración conocido.
+    const { segments } = await context.params;
+    const path = segments.map(encodeURIComponent).join("/");
+    upstreamUrl = new URL(`${apiBaseUrl.replace(/\/+$/, "")}/${path}`);
+    upstreamUrl.search = new URL(request.url).search;
+  } catch {
+    return Response.json({ detail: "El servicio no está disponible." }, { status: 500 });
+  }
 
   // Solo se reenvían los encabezados necesarios para JSON y autenticación.
   const headers = new Headers();

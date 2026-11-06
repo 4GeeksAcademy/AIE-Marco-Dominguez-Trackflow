@@ -39,17 +39,61 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiErrorFromResponse(response: Response): Promise<ApiError> {
-  const payload = await response.json().catch(() => null);
-  const detail = payload?.detail;
-  const validationIssues = Array.isArray(detail) ? detail as ValidationIssue[] : [];
-  const message = validationIssues.length
-    ? validationIssues.map((issue) => issue.msg).filter(Boolean).join(" ")
-    : typeof detail === "string"
-      ? detail
-      : `La API respondió con el estado ${response.status}.`;
+export function safeErrorMessage(cause: unknown, fallback: string): string {
+  // Solo se permite mostrar errores normalizados por este cliente; lo demás usa un texto local.
+  return cause instanceof ApiError ? cause.message : fallback;
+}
 
-  return new ApiError(message, response.status, validationIssues);
+function messageForStatus(status: number): string {
+  // Los estados conocidos se convierten a texto local para no mostrar detalles del servidor.
+  if (status === 401) return "Credenciales incorrectas o sesión caducada.";
+  if (status === 403) return "No tienes permiso para realizar esta acción.";
+  if (status === 404) return "No se encontró el recurso solicitado.";
+  if (status === 409) return "Ya existe un registro con esos datos.";
+  if (status === 400 || status === 422) return "Revisa los datos e inténtalo de nuevo.";
+  if (status >= 500) return "El servicio no está disponible. Inténtalo de nuevo más tarde.";
+  return "No se pudo completar la solicitud. Inténtalo de nuevo.";
+}
+
+async function safeFetch(input: RequestInfo | URL, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch {
+    // Los detalles nativos de red pueden incluir información técnica del entorno.
+    throw new ApiError("No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo de nuevo.", 0);
+  }
+}
+
+export async function parseResponseJson<T>(response: Response): Promise<T> {
+  try {
+    return await response.json() as T;
+  } catch {
+    // Un cuerpo JSON malformado no debe filtrar una excepción de parseo al usuario.
+    throw new ApiError("El servicio devolvió una respuesta inválida. Inténtalo de nuevo.", response.status);
+  }
+}
+
+export async function apiErrorFromResponse(response: Response): Promise<ApiError> {
+  let payload: { detail?: unknown } | null = null;
+  try {
+    payload = await response.json() as { detail?: unknown };
+  } catch {
+    // Un cuerpo no JSON se sustituye por el mensaje seguro asociado al estado HTTP.
+    return new ApiError(messageForStatus(response.status), response.status);
+  }
+  const detail = payload?.detail;
+  const validationIssues = Array.isArray(detail)
+    ? detail
+        .filter((issue): issue is ValidationIssue => typeof issue === "object" && issue !== null)
+        .map((issue) => ({
+          loc: Array.isArray(issue.loc)
+            ? issue.loc.filter((part): part is string | number => typeof part === "string" || typeof part === "number")
+            : [],
+          msg: "Revisa este campo.",
+        }))
+    : [];
+
+  return new ApiError(messageForStatus(response.status), response.status, validationIssues);
 }
 
 export function getAccessToken(): string | null {
@@ -78,7 +122,7 @@ export async function authenticatedFetch(
   const token = getAccessToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(input, { ...init, headers, cache: "no-store" });
+  const response = await safeFetch(input, { ...init, headers, cache: "no-store" });
   if (response.status === 401) {
     clearAccessToken();
     if (window.location.pathname !== "/login") {
@@ -89,13 +133,13 @@ export async function authenticatedFetch(
 }
 
 async function authRequest<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(`${apiBase}${path}`, {
+  const response = await safeFetch(`${apiBase}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init.headers },
     cache: "no-store",
   });
   if (!response.ok) throw await apiErrorFromResponse(response);
-  return response.json() as Promise<T>;
+  return parseResponseJson<T>(response);
 }
 
 export async function login(credentials: Credentials): Promise<void> {
@@ -148,7 +192,7 @@ export async function register(input: RegistrationInput): Promise<void> {
 export async function getCurrentUser(): Promise<CurrentUser> {
   const response = await authenticatedFetch(`${apiBase}/auth/me`);
   if (!response.ok) throw await apiErrorFromResponse(response);
-  return response.json() as Promise<CurrentUser>;
+  return parseResponseJson<CurrentUser>(response);
 }
 
 export async function updateMyProfile(input: ProfileInput): Promise<UserProfile> {
@@ -158,5 +202,5 @@ export async function updateMyProfile(input: ProfileInput): Promise<UserProfile>
     body: JSON.stringify(input),
   });
   if (!response.ok) throw await apiErrorFromResponse(response);
-  return response.json() as Promise<UserProfile>;
+  return parseResponseJson<UserProfile>(response);
 }

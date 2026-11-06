@@ -19,6 +19,8 @@ from core.storage import (
     get_profile_by_user_id,
     get_user_by_email,
     get_user_by_id,
+    record_password_reset_success,
+    register_password_reset_request,
     store_password_reset_token,
     update_user,
 )
@@ -112,8 +114,12 @@ def _password_reset_link(token: str) -> str | None:
 
 
 @router.post("/forgot-password")
-def forgot_password(request: ForgotPasswordInput) -> dict[str, str]:
-    user = get_user_by_email(str(request.email))
+def forgot_password(payload: ForgotPasswordInput, request: Request) -> dict[str, str]:
+    client_ip = request.client.host if request.client is not None else None
+    if not register_password_reset_request(str(payload.email), client_ip):
+        return {"message": PASSWORD_RESET_CONFIRMATION}
+
+    user = get_user_by_email(str(payload.email))
     if user is not None and user["is_active"]:
         token, jti, expires_at = create_password_reset_token(user["id"])
         store_password_reset_token(jti, user["id"], expires_at)
@@ -126,14 +132,15 @@ def forgot_password(request: ForgotPasswordInput) -> dict[str, str]:
                 send_password_reset_email(user["email"], reset_url)
             except EmailDeliveryError:
                 # The public response stays the same for known and unknown addresses.
-                logger.exception("Password reset email delivery failed.")
+                # The provider exception may contain recipient or request details.
+                logger.error("Password reset email delivery failed.")
 
     return {"message": PASSWORD_RESET_CONFIRMATION}
 
 
 @router.post("/reset-password")
-def reset_password(request: ResetPasswordInput) -> dict[str, str]:
-    token_claims = decode_password_reset_token(request.token)
+def reset_password(payload: ResetPasswordInput, request: Request) -> dict[str, str]:
+    token_claims = decode_password_reset_token(payload.token)
     if token_claims is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_RESET_TOKEN)
 
@@ -146,7 +153,9 @@ def reset_password(request: ResetPasswordInput) -> dict[str, str]:
     ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_RESET_TOKEN)
 
-    update_user(user_id, {"hashed_password": hash_password(request.new_password)})
+    update_user(user_id, {"hashed_password": hash_password(payload.new_password)})
+    client_ip = request.client.host if request.client is not None else None
+    record_password_reset_success(user_id, client_ip)
     return {"message": "La contraseña se actualizó correctamente."}
 
 

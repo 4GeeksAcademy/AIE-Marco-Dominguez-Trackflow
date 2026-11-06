@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createCandidate, updateCandidate } from "@/app/lib/tracker-api";
+import { safeErrorMessage } from "@/app/lib/auth-client";
 import type { Candidate, CandidateInput } from "@/app/types/candidate";
 
 type CandidateFields = {
@@ -69,7 +70,7 @@ export default function CandidateForm({ candidate, returnTo = "/" }: CandidateFo
       router.push(destination);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la candidatura.");
+      setError(safeErrorMessage(cause, "No se pudo guardar la candidatura."));
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +85,7 @@ export default function CandidateForm({ candidate, returnTo = "/" }: CandidateFo
         <p className="page-subtitle">{editing ? "Actualiza la información del perfil." : "Registra a una persona en el pipeline de TrackFlow."}</p>
       </div>
 
-      <form className="candidate-form" onSubmit={handleSubmit}>
+      <form id="candidate-form" className="candidate-form" onSubmit={handleSubmit}>
         <div className="form-section-heading">
           <div><span className="section-index">01</span><h2>Datos del perfil</h2></div>
           <p>Los campos marcados con * son obligatorios.</p>
@@ -127,11 +128,11 @@ export default function CandidateForm({ candidate, returnTo = "/" }: CandidateFo
           </label>
         </div>
 
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && <p className="form-error" role="alert">{error} <button className="text-button" type="button" onClick={() => { const form = document.getElementById("candidate-form"); if (form instanceof HTMLFormElement) form.requestSubmit(); }}>Reintentar</button></p>}
         <div className="form-actions">
           <Link className="secondary-button" href={returnTo}>Cancelar</Link>
           <button className="primary-button" type="submit" disabled={submitting}>
-            {submitting ? "Guardando…" : editing ? "Guardar cambios" : "Registrar candidatura"}
+            {submitting ? "Guardando…" : error ? "Reintentar" : editing ? "Guardar cambios" : "Registrar candidatura"}
           </button>
         </div>
       </form>

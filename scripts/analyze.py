@@ -102,11 +102,11 @@ def print_breakdown(title, labels, counts, total):
         print(f"  {value:<24} {count:>3}  ({percentage(count, total):>5.1f}%)")
 
 
-def print_report(summary, source_name):
+def print_report(summary):
     """Imprime el informe sin incluir valores originales de ninguna fila."""
     print("=" * 60)
     print("  TRACKFLOW - INCIDENT REPORT ANALYSIS")
-    print(f"  Source file: {source_name}")
+    print("  Source file: CSV")
     print("=" * 60)
     print(f"\nTOTAL RECORDS IN FILE .......... {summary['total_records']}")
     print(f"  Valid records ................ {summary['valid_records']}")
@@ -216,9 +216,11 @@ def main():
     try:
         summary = analyze_csv(args.csv_path)
     except (OSError, UnicodeError, csv.Error, ValueError) as error:
-        parser.error(str(error))
+        # Se informa el tipo de fallo sin imprimir rutas locales ni contenido del CSV.
+        print(f"Error: could not read CSV ({type(error).__name__}).", file=sys.stderr)
+        sys.exit(1)
 
-    print_report(summary, args.csv_path.name)
+    print_report(summary)
     try:
         answer = input("¿Deseas exportar los resultados a CSV? [s / n]: ").strip().lower()
     except EOFError:
@@ -228,8 +230,10 @@ def main():
         output_path = Path("results.csv")
         try:
             export_results(summary, output_path)
-        except OSError as error:
-            parser.error(f"Could not write {output_path}: {error}")
+        except (OSError, UnicodeError, csv.Error) as error:
+            # La salida conserva un diagnóstico útil sin exponer detalles del sistema de archivos.
+            print(f"Error: could not write results ({type(error).__name__}).", file=sys.stderr)
+            sys.exit(1)
         print(f"Results exported to {output_path}")
     elif answer not in {"n", "no"}:
         print("No export created; answer with y/n or s/n next time.")

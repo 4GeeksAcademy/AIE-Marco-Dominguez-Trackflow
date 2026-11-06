@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from pydantic import ValidationError
 from tinydb import Query
+from tinydb.storages import StorageError
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "packages" / "shared" / "python"))
@@ -85,8 +86,10 @@ def main():
 
     try:
         inserted, duplicates, invalid = seed_incidents(args.csv_path)
-    except (OSError, UnicodeError, csv.Error, ValueError) as error:
-        parser.error(str(error))
+    except (OSError, UnicodeError, csv.Error, ValueError, StorageError) as error:
+        # Se evita mostrar rutas, contenido del CSV o detalles de la base de datos.
+        print(f"Error: could not seed incidents ({type(error).__name__}).", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Inserted: {inserted}")
     print(f"Skipped (already loaded): {duplicates}")

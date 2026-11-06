@@ -58,29 +58,46 @@ export default function IncidentManager() {
   const [summary, setSummary] = useState<IncidentSummaryData | null>(null);
   const [summaryState, setSummaryState] = useState<"loading" | "error" | "ready">("loading");
   const [statusNotice, setStatusNotice] = useState("");
+  const [statusNoticeIsSuccess, setStatusNoticeIsSuccess] = useState(false);
+  const [savingIncidentId, setSavingIncidentId] = useState("");
+  const [failedStatusChange, setFailedStatusChange] = useState<{ incident: Incident; next: IncidentStatus } | null>(null);
 
   const loadList = useCallback(async () => {
     setListState("loading");
+    let succeeded = false;
     try {
       const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
       const response = await authenticatedFetch(`${apiBase}?${query}`);
       if (!response.ok) throw new Error();
-      setIncidents(await response.json() as Incident[]);
-      setListState("ready");
+      const result: unknown = await response.json();
+      if (!Array.isArray(result)) throw new Error();
+      setIncidents(result as Incident[]);
+      succeeded = true;
     } catch {
       setListState("error");
+    } finally {
+      // El estado de carga siempre termina, incluso con una respuesta no válida.
+      setListState(succeeded ? "ready" : "error");
     }
   }, [filters]);
 
   const loadSummary = useCallback(async () => {
     setSummaryState("loading");
+    let succeeded = false;
     try {
       const response = await authenticatedFetch(`${apiBase}/summary`);
       if (!response.ok) throw new Error();
-      setSummary(await response.json() as IncidentSummaryData);
-      setSummaryState("ready");
+      const result: unknown = await response.json();
+      if (typeof result !== "object" || result === null || typeof (result as Record<string, unknown>).total !== "number") {
+        throw new Error();
+      }
+      setSummary(result as IncidentSummaryData);
+      succeeded = true;
     } catch {
       setSummaryState("error");
+    } finally {
+      // La UI ofrece el botón de reintento si la carga no llegó a completarse.
+      setSummaryState(succeeded ? "ready" : "error");
     }
   }, []);
 
@@ -147,6 +164,9 @@ export default function IncidentManager() {
 
   async function changeStatus(incident: Incident, next: IncidentStatus) {
     setStatusNotice("");
+    setStatusNoticeIsSuccess(false);
+    setFailedStatusChange(null);
+    setSavingIncidentId(incident.id);
     // Cambio optimista: se revierte al valor anterior si la API falla.
     const previous = incident.status;
     setIncidents((current) => current.map((item) => (item.id === incident.id ? { ...item, status: next } : item)));
@@ -157,10 +177,15 @@ export default function IncidentManager() {
         body: JSON.stringify({ status: next }),
       });
       if (!response.ok) throw new Error(String(response.status));
+      setStatusNotice(language === "es" ? "Estado actualizado." : "Status updated.");
+      setStatusNoticeIsSuccess(true);
       void loadSummary();
     } catch (cause) {
       setIncidents((current) => current.map((item) => (item.id === incident.id ? { ...item, status: previous } : item)));
       setStatusNotice(cause instanceof Error && cause.message === "404" ? t.notFound : t.statusError);
+      setFailedStatusChange({ incident, next });
+    } finally {
+      setSavingIncidentId("");
     }
   }
 
@@ -205,10 +230,10 @@ export default function IncidentManager() {
 
   const summaryGroups: [string, Record<string, number>, Record<string, string>][] = summary
     ? [
-        [t.byStatus, summary.by_status, t.status],
-        [t.byCategory, summary.by_category, t.category],
-        [t.byOrigin, summary.by_origin, t.origin],
-        [t.byBranch, summary.by_branch, t.branch],
+        [t.byStatus, summary.by_status ?? {}, t.status],
+        [t.byCategory, summary.by_category ?? {}, t.category],
+        [t.byOrigin, summary.by_origin ?? {}, t.origin],
+        [t.byBranch, summary.by_branch ?? {}, t.branch],
       ]
     : [];
 
@@ -245,7 +270,7 @@ export default function IncidentManager() {
         )}
         {summaryState === "ready" && summary && (
           <>
-            <dl className="incident-metrics"><div><dt>{t.total}</dt><dd>{summary.total}</dd></div></dl>
+            <dl className="incident-metrics"><div><dt>{t.total}</dt><dd>{summary.total ?? 0}</dd></div></dl>
             <div className="incident-report-grid">
               {summaryGroups.map(([title, counts, labels]) => (
                 <section className="incident-report-section" key={title}>
@@ -264,7 +289,7 @@ export default function IncidentManager() {
 
       <section className="incident-results" aria-labelledby="incident-form-title">
         <h2 id="incident-form-title">{t.formTitle}</h2>
-        <form className="incident-form" onSubmit={submit} noValidate>
+        <form id="incident-manager-form" className="incident-form" onSubmit={submit} noValidate>
           <label className="form-field form-field-wide">
             {t.fieldTitle}
             <input
@@ -296,7 +321,7 @@ export default function IncidentManager() {
             </button>
           </div>
           {created && <p className="incident-success form-field-wide" role="status">{t.created}</p>}
-          {formError && <p className="incident-error form-field-wide" role="alert">{formError}</p>}
+          {formError && <p className="incident-error form-field-wide" role="alert">{formError} <button className="secondary-button" type="button" onClick={() => { const form = document.getElementById("incident-manager-form"); if (form instanceof HTMLFormElement) form.requestSubmit(); }}>{t.retry}</button></p>}
         </form>
       </section>
 
@@ -307,7 +332,9 @@ export default function IncidentManager() {
           {filterSelect("origin", t.filterOrigin, incidentOrigins, t.origin)}
           {filterSelect("branch", t.filterBranch, incidentBranches, t.branch)}
         </div>
-        {statusNotice && <p className="incident-error" role="alert">{statusNotice}</p>}
+        {statusNotice && (statusNoticeIsSuccess
+          ? <p className="incident-success" role="status">{statusNotice}</p>
+          : <p className="incident-error" role="alert">{statusNotice} {failedStatusChange && <button className="secondary-button" type="button" onClick={() => void changeStatus(failedStatusChange.incident, failedStatusChange.next)}>{t.retry}</button>}</p>)}
         {listState === "loading" && <p className="incident-progress" role="status">{t.loading}</p>}
         {listState === "error" && (
           <p className="incident-error" role="alert">
@@ -324,20 +351,21 @@ export default function IncidentManager() {
                 <div className="incident-item-main">
                   <strong>{incident.title}</strong>
                   <span>
-                    {t.category[incident.category]} · {t.origin[incident.origin]} · {t.branch[incident.branch]} · {t.created_at} {dateFormat.format(new Date(incident.created_at))}
+                    {t.category[incident.category] ?? incident.category} · {t.origin[incident.origin] ?? incident.origin} · {t.branch[incident.branch] ?? incident.branch} · {t.created_at} {incident.created_at ? dateFormat.format(new Date(incident.created_at)) : "—"}
                   </span>
                 </div>
                 <select
                   className="incident-select"
                   aria-label={t.filterStatus}
                   value={incident.status}
-                  disabled={statusTransitions[incident.status].length === 0}
+                  disabled={savingIncidentId === incident.id || statusTransitions[incident.status].length === 0}
                   onChange={(event) => void changeStatus(incident, event.target.value as IncidentStatus)}
                 >
                   {[incident.status, ...statusTransitions[incident.status]].map((value) => (
                     <option key={value} value={value}>{t.status[value]}</option>
                   ))}
                 </select>
+                {savingIncidentId === incident.id && <span role="status">{t.submitting}</span>}
               </li>
             ))}
           </ul>

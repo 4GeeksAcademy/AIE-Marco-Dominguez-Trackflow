@@ -7,9 +7,26 @@ import type {
   CandidateStage,
   CandidateStatus,
 } from "@/app/types/candidate";
-import { apiErrorFromResponse, authenticatedFetch } from "@/app/lib/auth-client";
+import { ApiError, apiErrorFromResponse, authenticatedFetch, parseResponseJson } from "@/app/lib/auth-client";
 
 const apiBaseUrl = "/api/tracker";
+
+function isCandidateList(value: unknown): value is CandidateList {
+  // Se comprueba la estructura mínima antes de usarla para paginar o renderizar.
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return Array.isArray(record.data)
+    && typeof record.total === "number"
+    && record.data.every((candidate) => {
+      if (typeof candidate !== "object" || candidate === null) return false;
+      const item = candidate as Record<string, unknown>;
+      return typeof item.id === "string"
+        && typeof item.full_name === "string"
+        && typeof item.email === "string"
+        && typeof item.position === "string"
+        && typeof item.applied_at === "string";
+    });
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await authenticatedFetch(`${apiBaseUrl}${path}`, {
@@ -27,7 +44,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  return parseResponseJson<T>(response);
 }
 
 export async function getCandidates(filters: {
@@ -41,16 +58,22 @@ export async function getCandidates(filters: {
   if (filters.stage) params.set("stage", filters.stage);
   if (filters.search) params.set("search", filters.search);
 
-  const firstPage = await request<CandidateList>(
+  const firstPage = await request<unknown>(
     `/records?${params.toString()}`,
   );
+  if (!isCandidateList(firstPage)) {
+    throw new ApiError("El servicio devolvió una respuesta inválida. Inténtalo de nuevo.", 502);
+  }
   const data = [...firstPage.data];
 
   for (let page = 2; data.length < firstPage.total; page += 1) {
     params.set("page", String(page));
-    const nextPage = await request<CandidateList>(
+    const nextPage = await request<unknown>(
       `/records?${params.toString()}`,
     );
+    if (!isCandidateList(nextPage)) {
+      throw new ApiError("El servicio devolvió una respuesta inválida. Inténtalo de nuevo.", 502);
+    }
     if (nextPage.data.length === 0) break;
     data.push(...nextPage.data);
   }

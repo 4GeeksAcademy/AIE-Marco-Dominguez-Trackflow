@@ -46,6 +46,7 @@ def send_password_reset_email(recipient: str, reset_url: str) -> None:
             "Authorization": f"Bearer {settings.resend_api_key.get_secret_value()}",
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": "TrackFlow-email/1.0",
         },
         method="POST",
     )

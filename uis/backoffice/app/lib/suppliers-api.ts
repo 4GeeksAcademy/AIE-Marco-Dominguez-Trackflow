@@ -3,11 +3,11 @@ import type {
   SupplierInput,
   SupplierStatus,
 } from "@/app/types/supplier";
-import { apiErrorFromResponse, authenticatedFetch } from "@/app/lib/auth-client";
+import { ApiError, apiErrorFromResponse, authenticatedFetch, parseResponseJson } from "@/app/lib/auth-client";
 
 const apiBase = "/api/suppliers";
 
-// Centraliza errores HTTP para que formularios y acciones muestren el detalle de FastAPI.
+// Centraliza errores HTTP para que las pantallas solo reciban mensajes seguros.
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await authenticatedFetch(`${apiBase}${path}`, {
     ...init,
@@ -20,7 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) throw await apiErrorFromResponse(response);
 
-  return response.json() as Promise<T>;
+  return parseResponseJson<T>(response);
 }
 
 export async function getSuppliers(filters: {
@@ -33,7 +33,19 @@ export async function getSuppliers(filters: {
   if (filters.category) params.set("category", filters.category);
   const search = params.toString();
   const query = search ? `?${search}` : "";
-  return request<Supplier[]>(query);
+  const result = await request<unknown>(query);
+  if (!Array.isArray(result) || !result.every((supplier) => {
+    if (typeof supplier !== "object" || supplier === null) return false;
+    const record = supplier as Record<string, unknown>;
+    return typeof record.id === "number"
+      && typeof record.name === "string"
+      && Array.isArray(record.categories)
+      && typeof record.rate_per_shipment === "number"
+      && typeof record.updated_at === "string";
+  })) {
+    throw new ApiError("El servicio devolvió una respuesta inválida. Inténtalo de nuevo.", 502);
+  }
+  return result as Supplier[];
 }
 
 export function createSupplier(input: SupplierInput): Promise<Supplier> {

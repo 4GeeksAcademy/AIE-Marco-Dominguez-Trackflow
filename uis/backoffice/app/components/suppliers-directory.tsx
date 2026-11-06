@@ -17,6 +17,7 @@ import {
   updateSupplierRate,
   updateSupplierStatus,
 } from "@/app/lib/suppliers-api";
+import { safeErrorMessage } from "@/app/lib/auth-client";
 
 const initialForm = {
   name: "",
@@ -38,7 +39,7 @@ function formatRate(rate: number, currency: Supplier["currency"]): string {
 }
 
 function displayError(cause: unknown): string {
-  return cause instanceof Error ? cause.message : "No se pudo completar la operación.";
+  return safeErrorMessage(cause, "No se pudo completar la operación.");
 }
 
 export default function SuppliersDirectory() {
@@ -53,11 +54,23 @@ export default function SuppliersDirectory() {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const [savingRateId, setSavingRateId] = useState<number | null>(null);
+  const [savingStatusId, setSavingStatusId] = useState<number | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [createFailed, setCreateFailed] = useState(false);
+  const [retryAction, setRetryAction] = useState<
+    | { kind: "rate"; supplier: Supplier }
+    | { kind: "status"; supplier: Supplier; status: SupplierStatus }
+    | null
+  >(null);
   const requestKey = JSON.stringify([country, category, reload]);
   const loading = loadedRequest !== requestKey;
 
   useEffect(() => {
     let active = true;
+    setLoadFailed(false);
+    setError("");
+    setRetryAction(null);
     // Ignora una respuesta anterior si el usuario cambia los filtros durante la petición.
     getSuppliers({ country, category })
       .then((records) => {
@@ -65,12 +78,15 @@ export default function SuppliersDirectory() {
         setSuppliers(records);
         setRateDrafts(Object.fromEntries(records.map((record) => [record.id, String(record.rate_per_shipment)])));
         setError("");
-        setLoadedRequest(requestKey);
       })
       .catch((cause: unknown) => {
         if (!active) return;
         setError(displayError(cause));
-        setLoadedRequest(requestKey);
+        setLoadFailed(true);
+      })
+      .finally(() => {
+        // La carga termina en ambas ramas y las respuestas antiguas no pisan el estado actual.
+        if (active) setLoadedRequest(requestKey);
       });
 
     return () => {
@@ -86,6 +102,7 @@ export default function SuppliersDirectory() {
   async function submitNewSupplier(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setNotice("");
+    setError("");
     if (form.categories.length === 0) {
       setError("Selecciona al menos una categoría.");
       return;
@@ -105,6 +122,8 @@ export default function SuppliersDirectory() {
 
     // La moneda se deriva del país para impedir combinaciones incompatibles desde el formulario.
     setSaving(true);
+    setRetryAction(null);
+    setCreateFailed(false);
     try {
       await createSupplier(input);
       setForm(initialForm);
@@ -114,6 +133,7 @@ export default function SuppliersDirectory() {
       setReload((value) => value + 1);
     } catch (cause) {
       setError(displayError(cause));
+      setCreateFailed(true);
     } finally {
       setSaving(false);
     }
@@ -125,6 +145,8 @@ export default function SuppliersDirectory() {
       setError("La tarifa debe ser mayor que cero.");
       return;
     }
+    setSavingRateId(supplier.id);
+    setRetryAction(null);
     try {
       // La respuesta incluye el timestamp nuevo; se sustituye la fila sin recargar la página.
       updateSupplier(await updateSupplierRate(supplier.id, rate));
@@ -132,17 +154,31 @@ export default function SuppliersDirectory() {
       setNotice(`Tarifa actualizada para ${supplier.name}.`);
     } catch (cause) {
       setError(displayError(cause));
+      setRetryAction({ kind: "rate", supplier });
+    } finally {
+      setSavingRateId(null);
     }
   }
 
   async function changeStatus(supplier: Supplier, status: SupplierStatus) {
+    setSavingStatusId(supplier.id);
+    setRetryAction(null);
     try {
       updateSupplier(await updateSupplierStatus(supplier.id, status));
       setError("");
       setNotice(`Estado actualizado para ${supplier.name}.`);
     } catch (cause) {
       setError(displayError(cause));
+      setRetryAction({ kind: "status", supplier, status });
+    } finally {
+      setSavingStatusId(null);
     }
+  }
+
+  function retryFailedAction() {
+    // Se repite únicamente la acción que falló, conservando su entrada original.
+    if (retryAction?.kind === "rate") void saveRate(retryAction.supplier);
+    if (retryAction?.kind === "status") void changeStatus(retryAction.supplier, retryAction.status);
   }
 
   function toggleCategory(value: SupplierCategory) {
@@ -198,10 +234,23 @@ export default function SuppliersDirectory() {
         </div>
 
         {notice && <p className="notice" role="status">{notice}</p>}
-        {error && <p className="error-banner" role="alert">{error}</p>}
+        {error && !loadFailed && !formOpen && (
+          <p className="error-banner" role="alert">
+            {error}
+            {retryAction ? (
+              <button className="secondary-button" type="button" onClick={retryFailedAction}>Reintentar</button>
+            ) : null}
+          </p>
+        )}
 
         {loading ? (
           <div className="loading-state" aria-live="polite">Cargando proveedores…</div>
+        ) : loadFailed ? (
+          <div className="empty-state" role="alert">
+            <h2>No se pudo cargar el directorio</h2>
+            <p>{error}</p>
+            <button className="secondary-button" type="button" onClick={() => setReload((value) => value + 1)}>Reintentar</button>
+          </div>
         ) : suppliers.length === 0 ? (
           <div className="empty-state"><span className="empty-mark">0</span><h2>No hay proveedores en esta vista</h2><p>Cambia los filtros o registra un proveedor nuevo.</p></div>
         ) : (
@@ -218,7 +267,7 @@ export default function SuppliersDirectory() {
                       <span>{supplier.country}{supplier.service_zone ? ` · ${supplier.service_zone}` : ""}</span>
                       {supplier.contact_email && <a href={`mailto:${supplier.contact_email}`}>{supplier.contact_email}</a>}
                     </td>
-                    <td><div className="category-list">{supplier.categories.map((value) => <span className="category-tag" key={value}>{categoryLabels[value]}</span>)}</div></td>
+                    <td><div className="category-list">{(supplier.categories ?? []).map((value) => <span className="category-tag" key={value}>{categoryLabels[value] ?? value}</span>)}</div></td>
                     <td>
                       <form className="rate-control" onSubmit={(event) => { event.preventDefault(); void saveRate(supplier); }}>
                         <label className="sr-only" htmlFor={`rate-${supplier.id}`}>Tarifa de {supplier.name}</label>
@@ -232,7 +281,7 @@ export default function SuppliersDirectory() {
                           onChange={(event) => setRateDrafts((current) => ({ ...current, [supplier.id]: event.target.value }))}
                         />
                         <span className="currency-code">{supplier.currency}</span>
-                        <button className="save-rate" type="submit" title="Guardar tarifa" aria-label={`Guardar tarifa de ${supplier.name}`}>↵</button>
+                        <button className="save-rate" type="submit" disabled={savingRateId === supplier.id} title="Guardar tarifa" aria-label={`Guardar tarifa de ${supplier.name}`}>{savingRateId === supplier.id ? "…" : "↵"}</button>
                       </form>
                       <span className="rate-reference">Actual: {formatRate(supplier.rate_per_shipment, supplier.currency)}</span>
                     </td>
@@ -240,7 +289,7 @@ export default function SuppliersDirectory() {
                       <label className={`status-select status-${supplier.status}`}>
                         <span className="status-dot" aria-hidden="true" />
                         <span className="sr-only">Estado de {supplier.name}</span>
-                        <select value={supplier.status} onChange={(event) => void changeStatus(supplier, event.target.value as SupplierStatus)}>
+                        <select disabled={savingStatusId === supplier.id} value={supplier.status} onChange={(event) => void changeStatus(supplier, event.target.value as SupplierStatus)}>
                           <option value="active">Activo</option>
                           <option value="suspended">Suspendido</option>
                         </select>
@@ -259,7 +308,7 @@ export default function SuppliersDirectory() {
         <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setFormOpen(false); }}>
           <section className="supplier-dialog" role="dialog" aria-modal="true" aria-labelledby="form-title">
             <div className="dialog-heading"><div><p className="eyebrow">NUEVO REGISTRO</p><h2 id="form-title">Añadir proveedor</h2></div><button className="icon-button close-button" type="button" aria-label="Cerrar formulario" onClick={() => setFormOpen(false)}>×</button></div>
-            <form onSubmit={(event) => void submitNewSupplier(event)}>
+            <form id="supplier-create-form" onSubmit={(event) => void submitNewSupplier(event)}>
               <div className="form-grid">
                 <label className="form-field wide-field"><span>Nombre comercial *</span><input required maxLength={120} value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} /></label>
                 <label className="form-field"><span>País *</span><select value={form.country} onChange={(event) => setForm((current) => ({ ...current, country: event.target.value as SupplierCountry }))}><option value="USA">USA</option><option value="Spain">Spain</option></select></label>
@@ -274,7 +323,7 @@ export default function SuppliersDirectory() {
                 <legend>Categorías de producto *</legend>
                 <div>{categories.map((value) => <label key={value}><input type="checkbox" checked={form.categories.includes(value)} onChange={() => toggleCategory(value)} /><span>{categoryLabels[value]}</span></label>)}</div>
               </fieldset>
-              {error && <p className="form-error" role="alert">{error}</p>}
+              {error && formOpen && <p className="form-error" role="alert">{error} {createFailed && <button className="secondary-button" type="button" onClick={() => { const form = document.getElementById("supplier-create-form"); if (form instanceof HTMLFormElement) form.requestSubmit(); }}>Reintentar</button>}</p>}
               <div className="dialog-actions"><button className="secondary-button" type="button" onClick={() => setFormOpen(false)}>Cancelar</button><button className="primary-button" type="submit" disabled={saving}>{saving ? "Guardando…" : "Registrar proveedor"}</button></div>
             </form>
           </section>

@@ -57,7 +57,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         if (Object.keys(nextErrors).length > 0) setFieldErrors(nextErrors);
         else setFormError(cause.message);
       } else {
-        setFormError(cause instanceof Error ? cause.message : "No se pudo iniciar sesión.");
+        setFormError(cause instanceof ApiError ? cause.message : "No se pudo iniciar sesión.");
       }
     } finally {
       setSubmitting(false);
@@ -92,7 +92,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           <p className="eyebrow">PEOPLE &amp; TALENT · TRACKFLOW</p>
           <h1 id="auth-title">{isRegister ? "Crear cuenta" : "Iniciar sesión"}</h1>
         </div>
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form id="auth-form" className="auth-form" onSubmit={handleSubmit}>
           {renderField("email", "Email", "email")}
           {renderField("password", "Contraseña", "password")}
           {isRegister && (
@@ -102,9 +102,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
               {renderField("address", "Dirección")}
             </>
           )}
-          {formError && <p className="auth-form-error" role="alert">{formError}</p>}
+          {formError && <p className="auth-form-error" role="alert">{formError} <button className="text-button" type="button" onClick={() => { const form = document.getElementById("auth-form"); if (form instanceof HTMLFormElement) form.requestSubmit(); }}>Reintentar</button></p>}
           <button className="primary-button auth-submit" type="submit" disabled={submitting}>
-            {submitting ? "Procesando…" : isRegister ? "Crear cuenta" : "Entrar"}
+            {submitting ? "Procesando…" : formError ? "Reintentar" : isRegister ? "Crear cuenta" : "Entrar"}
           </button>
         </form>
         <p className="auth-switch">

@@ -132,7 +132,8 @@ def forgot_password(payload: ForgotPasswordInput, request: Request) -> dict[str,
                 send_password_reset_email(user["email"], reset_url)
             except EmailDeliveryError:
                 # The public response stays the same for known and unknown addresses.
-                logger.exception("Password reset email delivery failed.")
+                # The provider exception may contain recipient or request details.
+                logger.error("Password reset email delivery failed.")
 
     return {"message": PASSWORD_RESET_CONFIRMATION}
 

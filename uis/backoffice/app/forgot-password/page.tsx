@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { forgotPassword } from "@/app/lib/auth-client";
+import { forgotPassword, safeErrorMessage } from "@/app/lib/auth-client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
       await forgotPassword(email);
       setSubmitted(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo enviar la solicitud.");
+      setError(safeErrorMessage(cause, "No se pudo enviar la solicitud."));
     } finally {
       setSubmitting(false);
     }
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
             </label>
             {error && <p className="auth-form-error" role="alert">{error}</p>}
             <button className="primary-button auth-submit" type="submit" disabled={submitting}>
-              {submitting ? "Enviando…" : "Enviar enlace"}
+              {submitting ? "Enviando…" : error ? "Reintentar" : "Enviar enlace"}
             </button>
           </form>
         )}

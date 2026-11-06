@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCandidates } from "@/app/lib/tracker-api";
+import { safeErrorMessage } from "@/app/lib/auth-client";
 import { candidateStages, candidateStatuses, stageLabel, statusLabel } from "@/app/lib/candidate-options";
 import type { Candidate, CandidateStage, CandidateStatus } from "@/app/types/candidate";
 
@@ -68,6 +69,7 @@ export default function CandidateList() {
 
   useEffect(() => {
     let active = true;
+    setError("");
 
     getCandidates({
       search: query || undefined,
@@ -79,12 +81,14 @@ export default function CandidateList() {
         setCandidates(result.data);
         setTotal(result.total);
         setError("");
-        setLoadedRequest(requestKey);
       })
       .catch((cause: unknown) => {
         if (!active) return;
-        setError(cause instanceof Error ? cause.message : "No se pudo cargar el pipeline.");
-        setLoadedRequest(requestKey);
+        setError(safeErrorMessage(cause, "No se pudo cargar el pipeline."));
+      })
+      .finally(() => {
+        // El indicador termina tanto si la API responde como si falla.
+        if (active) setLoadedRequest(requestKey);
       })
 
     return () => {

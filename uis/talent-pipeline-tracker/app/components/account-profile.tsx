@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import {
   getCurrentUser,
+  safeErrorMessage,
   updateMyProfile,
   type CurrentUser,
 } from "@/app/lib/auth-client";
@@ -16,6 +18,7 @@ export default function AccountProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -30,13 +33,13 @@ export default function AccountProfile() {
         });
       })
       .catch((cause) => {
-        if (active) setError(cause instanceof Error ? cause.message : "No se pudo cargar el perfil.");
+        if (active) setError(safeErrorMessage(cause, "No se pudo cargar el perfil."));
       })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [retryCount]);
 
   function updateField(name: keyof ProfileFields, value: string) {
     setFields((current) => ({ ...current, [name]: value }));
@@ -57,7 +60,7 @@ export default function AccountProfile() {
       });
       setSaved(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo actualizar el perfil.");
+      setError(safeErrorMessage(cause, "No se pudo actualizar el perfil."));
     } finally {
       setSaving(false);
     }
@@ -95,11 +98,17 @@ export default function AccountProfile() {
             {error && <p className="auth-form-error" role="alert">{error}</p>}
             {saved && <p className="auth-success" role="status">Perfil actualizado.</p>}
             <button className="primary-button auth-submit" type="submit" disabled={saving}>
-              {saving ? "Guardando…" : "Guardar cambios"}
+              {saving ? "Guardando…" : error ? "Reintentar" : "Guardar cambios"}
             </button>
           </form>
         )}
-        {!user && error && <p className="auth-form-error" role="alert">{error}</p>}
+        {!user && error && (
+          <div className="auth-form-error" role="alert">
+            <p>{error}</p>
+            <button className="secondary-button" type="button" onClick={() => setRetryCount((count) => count + 1)}>Reintentar</button>
+            <Link href="/">Volver al inicio</Link>
+          </div>
+        )}
       </section>
     </main>
   );

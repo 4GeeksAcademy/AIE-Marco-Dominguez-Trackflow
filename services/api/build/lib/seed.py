@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
+import sys
 
+from pydantic import ValidationError
 from database import suppliers
 from models import SupplierInput
+from tinydb.storages import StorageError
 
 
 SUPPLIERS_SEED = [
@@ -169,19 +172,32 @@ def main() -> None:
     inserted = 0
     now = datetime.now(timezone.utc).isoformat()
 
-    for supplier_data in SUPPLIERS_SEED:
-        supplier = SupplierInput.model_validate(supplier_data)
+    for index, supplier_data in enumerate(SUPPLIERS_SEED, start=1):
+        try:
+            supplier = SupplierInput.model_validate(supplier_data)
+        except ValidationError:
+            # El número de fixture identifica la entrada sin imprimir sus datos.
+            print(f"Error: invalid supplier seed entry {index}.", file=sys.stderr)
+            sys.exit(1)
         identity = (supplier.name, supplier.country.value)
         # La clave de negocio evita insertar otra ficha si se vuelve a ejecutar el comando.
-        exists = suppliers.contains(
-            lambda row: (row["name"], row["country"]) == identity
-        )
+        try:
+            exists = suppliers.contains(
+                lambda row: (row["name"], row["country"]) == identity
+            )
+        except (OSError, StorageError, ValueError) as error:
+            print(f"Error: could not check supplier seed entry {index} ({type(error).__name__}).", file=sys.stderr)
+            sys.exit(1)
         if exists:
             continue
 
         record = supplier.model_dump(mode="json")
         record["updated_at"] = now
-        suppliers.insert(record)
+        try:
+            suppliers.insert(record)
+        except (OSError, StorageError, ValueError) as error:
+            print(f"Error: could not insert supplier seed entry {index} ({type(error).__name__}).", file=sys.stderr)
+            sys.exit(1)
         inserted += 1
 
     print(f"Seeder completado: {inserted} proveedores insertados.")

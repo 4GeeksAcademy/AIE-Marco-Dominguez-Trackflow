@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { apiErrorFromResponse, authenticatedFetch } from "@/app/lib/auth-client";
+import { apiErrorFromResponse, authenticatedFetch, parseResponseJson, safeErrorMessage } from "@/app/lib/auth-client";
 
 type IncidentSummary = {
   total_records: number;
@@ -55,13 +55,17 @@ export default function IncidentAnalysis() {
   const [summary, setSummary] = useState<IncidentSummary | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [errorAction, setErrorAction] = useState<"analyze" | "download" | null>(null);
+  const [downloaded, setDownloaded] = useState(false);
 
-  async function analyze(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function analyze() {
     if (!file) return;
 
     setLoading(true);
     setError("");
+    setErrorAction("analyze");
+    setDownloaded(false);
     const formData = new FormData();
     formData.set("file", file);
 
@@ -72,17 +76,26 @@ export default function IncidentAnalysis() {
         body: formData,
       });
       if (!response.ok) throw await apiErrorFromResponse(response);
-      setSummary(await response.json() as IncidentSummary);
+      setSummary(await parseResponseJson<IncidentSummary>(response));
+      setErrorAction(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo analizar el archivo.");
+      setError(safeErrorMessage(cause, "No se pudo analizar el archivo."));
       setSummary(null);
     } finally {
       setLoading(false);
     }
   }
 
+  function handleAnalyze(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void analyze();
+  }
+
   async function downloadResults() {
+    setDownloading(true);
     setError("");
+    setErrorAction("download");
+    setDownloaded(false);
     try {
       const response = await authenticatedFetch("/api/incidents/results/export");
       if (!response.ok) throw await apiErrorFromResponse(response);
@@ -94,8 +107,12 @@ export default function IncidentAnalysis() {
       link.download = "incidents-results.csv";
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      setDownloaded(true);
+      setErrorAction(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo descargar el archivo.");
+      setError(safeErrorMessage(cause, "No se pudo descargar el archivo."));
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -109,7 +126,7 @@ export default function IncidentAnalysis() {
         </div>
       </div>
 
-      <form className="incident-upload" onSubmit={analyze}>
+      <form className="incident-upload" onSubmit={handleAnalyze}>
         <label className="incident-file-field" htmlFor="incident-file">
           <span className="incident-file-mark" aria-hidden="true">CSV</span>
           <span className="incident-file-copy">
@@ -130,8 +147,9 @@ export default function IncidentAnalysis() {
         </button>
       </form>
 
-      {error && <p className="incident-error" role="alert">{error}</p>}
+      {error && <p className="incident-error" role="alert">{error} <button className="secondary-button" type="button" onClick={() => errorAction === "download" ? void downloadResults() : void analyze()}>Reintentar</button></p>}
       {loading && <p className="incident-progress" role="status" aria-live="polite">Validando registros y calculando métricas…</p>}
+      {downloaded && <p className="incident-progress" role="status">Descarga iniciada.</p>}
 
       {summary && (
         <section className="incident-results" aria-live="polite" aria-labelledby="incident-results-title">
@@ -140,24 +158,24 @@ export default function IncidentAnalysis() {
               <p className="eyebrow">RESUMEN DEL ARCHIVO</p>
               <h2 id="incident-results-title">Resultados del análisis</h2>
             </div>
-            <button className="secondary-button" type="button" onClick={downloadResults}>
-              Descargar CSV
+            <button className="secondary-button" type="button" disabled={downloading} onClick={downloadResults}>
+              {downloading ? "Preparando descarga…" : "Descargar CSV"}
             </button>
           </div>
 
           <dl className="incident-metrics">
             <div><dt>Registros totales</dt><dd>{summary.total_records}</dd></div>
             <div><dt>Válidos</dt><dd>{summary.valid_records}</dd></div>
-            <div><dt>Inválidos</dt><dd>{summary.invalid_records}</dd></div>
-            <div><dt>Satisfacción media</dt><dd>{summary.average_score === null ? "—" : `${summary.average_score.toFixed(2)} / 5`}</dd></div>
+            <div><dt>Inválidos</dt><dd>{summary.invalid_records ?? 0}</dd></div>
+            <div><dt>Satisfacción media</dt><dd>{typeof summary.average_score === "number" ? `${summary.average_score.toFixed(2)} / 5` : "—"}</dd></div>
           </dl>
 
           <div className="incident-report-grid">
             <section className="incident-report-section">
               <h3>Registros inválidos</h3>
-              {summary.invalid_records === 0 ? <p className="incident-empty">No se encontraron registros inválidos.</p> : (
+              {(summary.invalid_records ?? 0) === 0 ? <p className="incident-empty">No se encontraron registros inválidos.</p> : (
                 <ul className="incident-count-list">
-                  {Object.entries(summary.invalid_reasons).filter(([, count]) => count > 0).map(([reason, count]) => (
+                  {Object.entries(summary.invalid_reasons ?? {}).filter(([, count]) => count > 0).map(([reason, count]) => (
                     <li key={reason}><span>{invalidReasonLabels[reason] ?? formatLabel(reason)}</span><strong>{count}</strong></li>
                   ))}
                 </ul>
@@ -166,7 +184,7 @@ export default function IncidentAnalysis() {
             <section className="incident-report-section">
               <h3>Incidencias por categoría</h3>
               <ul className="incident-count-list">
-                {Object.entries(summary.category_counts).map(([category, count]) => (
+                {Object.entries(summary.category_counts ?? {}).map(([category, count]) => (
                   <li key={category}><span>{formatLabel(category)}</span><strong>{count}</strong></li>
                 ))}
               </ul>
@@ -174,7 +192,7 @@ export default function IncidentAnalysis() {
             <section className="incident-report-section">
               <h3>Incidencias por estado</h3>
               <ul className="incident-count-list">
-                {Object.entries(summary.status_counts).map(([status, count]) => (
+                {Object.entries(summary.status_counts ?? {}).map(([status, count]) => (
                   <li key={status}><span>{formatLabel(status)}</span><strong>{count}</strong></li>
                 ))}
               </ul>
@@ -183,16 +201,16 @@ export default function IncidentAnalysis() {
             <section className="incident-report-section">
               <h3>Incidencias por país</h3>
               <ul className="incident-count-list">
-                {Object.entries(summary.country_counts).map(([country, count]) => (
+                {Object.entries(summary.country_counts ?? {}).map(([country, count]) => (
                   <li key={country}><span>{countryLabels[country] ?? country}</span><strong>{count}</strong></li>
                 ))}
               </ul>
             </section>
             <section className="incident-report-section">
               <h3>Puntuaciones de casos cerrados</h3>
-              <p className="incident-report-note">{summary.scored_closed_records} de {summary.closed_records} casos cerrados con puntuación</p>
+              <p className="incident-report-note">{summary.scored_closed_records ?? 0} de {summary.closed_records ?? 0} casos cerrados con puntuación</p>
               <ul className="incident-count-list">
-                {Object.entries(summary.satisfaction_counts).sort(([first], [second]) => Number(first) - Number(second)).map(([score, count]) => (
+                {Object.entries(summary.satisfaction_counts ?? {}).sort(([first], [second]) => Number(first) - Number(second)).map(([score, count]) => (
                   <li key={score}><span>{satisfactionLabels[score] ?? `Puntuación ${score}`}</span><strong>{count}</strong></li>
                 ))}
               </ul>

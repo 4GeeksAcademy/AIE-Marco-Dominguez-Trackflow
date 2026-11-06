@@ -1,5 +1,5 @@
 type RouteContext = {
-  params: Promise<{ segments: string[] }>;
+  params: Promise<{ segments?: string[] }>;
 };
 
 async function proxy(request: Request, context: RouteContext): Promise<Response> {
@@ -7,15 +7,23 @@ async function proxy(request: Request, context: RouteContext): Promise<Response>
   const apiBaseUrl = process.env.INCIDENTS_API_BASE_URL;
   if (!apiBaseUrl) {
     return Response.json(
-      { detail: "Falta configurar INCIDENTS_API_BASE_URL." },
+      { detail: "El servicio no está disponible." },
       { status: 500 },
     );
   }
 
-  const { segments } = await context.params;
-  const upstreamUrl = new URL(
-    `${apiBaseUrl.replace(/\/+$/, "")}/api/incidents/${segments.map(encodeURIComponent).join("/")}`,
-  );
+  let upstreamUrl: URL;
+  try {
+    // Una URL de backend inválida se trata como un problema de configuración conocido.
+    const { segments = [] } = await context.params;
+    const suffix = segments.length
+      ? `/${segments.map(encodeURIComponent).join("/")}`
+      : "";
+    upstreamUrl = new URL(`${apiBaseUrl.replace(/\/+$/, "")}/api/incidents${suffix}`);
+    upstreamUrl.search = new URL(request.url).search;
+  } catch {
+    return Response.json({ detail: "El servicio no está disponible." }, { status: 500 });
+  }
   const headers = new Headers();
   for (const name of ["content-type", "authorization", "accept"]) {
     const value = request.headers.get(name);

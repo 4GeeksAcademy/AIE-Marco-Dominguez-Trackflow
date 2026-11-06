@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { resetPassword } from "@/app/lib/auth-client";
+import { resetPassword, safeErrorMessage } from "@/app/lib/auth-client";
 import PasswordInput from "@/app/components/password-input";
 
 export default function ResetPasswordPage() {
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
       await resetPassword(token, newPassword);
       router.replace("/login?passwordReset=success");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo actualizar la contraseña.");
+      setError(safeErrorMessage(cause, "No se pudo actualizar la contraseña."));
     } finally {
       setSubmitting(false);
     }
@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
             </div>
             {error && <p className="auth-form-error" role="alert">{error}</p>}
             <button className="primary-button auth-submit" type="submit" disabled={submitting}>
-              {submitting ? "Actualizando…" : "Actualizar contraseña"}
+              {submitting ? "Actualizando…" : error ? "Reintentar" : "Actualizar contraseña"}
             </button>
           </form>
         )}
